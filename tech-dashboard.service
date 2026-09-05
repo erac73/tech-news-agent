@@ -1,0 +1,15 @@
+[Unit]
+Description=Tech News Dashboard (Flask web UI)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/serpico/tech-news-agent/tech_dashboard.py
+WorkingDirectory=/home/serpico/tech-news-agent
+User=serpico
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
