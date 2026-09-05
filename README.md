@@ -1,14 +1,27 @@
-# Tech News Agent
+<div align="center">
 
-Agente automático de noticias de tecnología que corre en una **Raspberry Pi**,
-diseñado para un estudiante de **Ingeniería de Software**.
+  <img src="logo.svg" alt="Logo de Tech News Agent" width="130" height="130">
 
-Recopila cada día información relevante de **programación, inteligencia
-artificial, ciencias de la computación, frameworks/web, DevOps y noticias tech**,
-la filtra según tus intereses y te la presenta en un **panel web moderno** con la
-opción de **leer todo en español**.
+  <h1>Tech News Agent</h1>
 
-![stack](https://img.shields.io/badge/Raspberry%20Pi-4%2B-red) ![py](https://img.shields.io/badge/Python-3.11-blue) ![flask](https://img.shields.io/badge/Flask-2.2-lightblue) ![cloudflare](https://img.shields.io/badge/Cloudflare-Tunnel-orange)
+  <p><em>Agente de noticias de tecnología con panel web y lectura en español.</em></p>
+
+  <p>
+    <img src="https://img.shields.io/badge/Python-3.11-blue" alt="Python 3.11">
+    <img src="https://img.shields.io/badge/Flask-2.2-lightblue" alt="Flask 2.2">
+    <img src="https://img.shields.io/badge/SQLite-historial-brightgreen" alt="SQLite">
+    <img src="https://img.shields.io/badge/Cloudflare-Tunnel-orange" alt="Cloudflare Tunnel">
+  </p>
+
+</div>
+
+---
+
+**Tech News Agent** recopila cada día información relevante sobre
+**programación, inteligencia artificial, ciencias de la computación,
+frameworks/web, DevOps y noticias tech**, la filtra según tus intereses y te
+la presenta en un **panel web moderno** con la opción de **leer todo en
+español**. Corre como servicio (cron + systemd) en un **servidor Linux**.
 
 ---
 
@@ -36,15 +49,17 @@ opción de **leer todo en español**.
   `Frameworks y Web`, `Noticias Tech` y `Docker / DevOps`
   (Hacker News, arXiv, OpenAI, GitHub Blog, StackOverflow, Reddit, dev.to,
   TechCrunch, Docker, NVIDIA, MIT y más).
-- **Filtrado por relevancia**: puntúa cada noticia según palabras clave de tu
-  carrera (python, machine learning, llm, backend, kubernetes, algorithm…).
+- **Filtrado por relevancia**: puntúa cada noticia con palabras clave del
+  desarrollo de software (python, machine learning, llm, backend, kubernetes,
+  algorithm…).
 - **Historial SQLite**: todas las noticias quedan guardadas para consulta.
 - **Resumen diario** en texto plano y en **JSON estructurado**.
 - **Panel web estético y responsive** con tema oscuro, tarjetas por noticia,
   buscador y filtros.
 - **Traducción al español** de títulos y resúmenes (Google Translate) con
   **caché en disco** para que la consulta sea instantánea.
-- **Cron diario + servicio systemd**: todo funciona solo tras reiniciar la Pi.
+- **Cron diario + servicio systemd**: todo funciona solo tras reiniciar el
+  servidor.
 - **Exposición pública** opcional vía Cloudflare Tunnel con HTTPS.
 
 ---
@@ -52,7 +67,7 @@ opción de **leer todo en español**.
 ## Arquitectura
 
 ```
- Raspberry Pi (serpico@raspberrypi)
+ Servidor (serpico@mipi.dpdns.org)
  ┌─────────────────────────────────────────────────────────────┐
  │  cron (08:00)                                                │
  │   └─ tech_news_agent.py                                      │
@@ -94,6 +109,8 @@ tech-news-agent/
 ├── tech_dashboard.py     # panel web Flask + traduccion al español
 ├── run_dashboard.sh      # lanzador del panel (usado por systemd)
 ├── tech-dashboard.service# unit de systemd
+├── logo.svg              # logo del proyecto
+├── favicon.svg           # icono del navegador
 ├── requirements.txt      # dependencias Python
 ├── README.md
 └── data/                 # (generado, no se versiona)
@@ -122,8 +139,7 @@ pip install -r requirements.txt
 python tech_news_agent.py --days 2
 ```
 
-Si installas en la Pi con instalación del sistema (Debian/Raspberry OS),
-puedes usar:
+Si instalas con el Python del sistema (Debian), puedes usar:
 
 ```bash
 pip3 install --user --break-system-packages -r requirements.txt
@@ -153,10 +169,10 @@ La salida incluye:
 
 ### Cómo se puntúa la relevancia
 
-Cada noticia se compara contra `KEYWORDS` (todas relacionadas con Ingeniería
-de Software). Por cada coincidencia con límites de palabra se suma **+1** al
-`score`; ciertos temas no deseados (cripto, celebridades, deportes) restan
-**-2**. Las noticias con `score <= 0` se descartan.
+Cada noticia se compara contra `KEYWORDS` (todas relacionadas con el
+desarrollo de software). Por cada coincidencia con límites de palabra se suma
+**+1** al `score`; ciertos temas no deseados (cripto, celebridades, deportes)
+restan **-2**. Las noticias con `score <= 0` se descartan.
 
 ---
 
@@ -359,4 +375,12 @@ journalctl -u tech-dashboard -n 50 --no-pager
 
 ---
 
-Hecho con ❤️ para estudiantes de Ingeniería de Software · Raspberry Pi 🍓
+<div align="center">
+
+  <p>
+    Hecho con
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="#f43f5e" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    · Python · Flask
+  </p>
+
+</div>

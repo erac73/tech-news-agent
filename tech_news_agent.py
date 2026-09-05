@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Tech News Agent - Raspberry Pi
+Tech News Agent
 ================================
 Agente que busca informacion sobre el mundo de la tecnologia:
 programacion, nuevas tecnologias, IA, frameworks, ciencias de la computacion,
-y material relevante para una carrera de Ingenieria de Software.
+y material relevante para el desarrollo de software.
 
 - Descarga feeds RSS de multiples fuentes.
 - Filtra noticias por palabras clave.
@@ -45,7 +45,7 @@ DB_PATH = os.path.join(DATA_DIR, "tech_news_history.db")
 SUMMARY_DIR = os.path.join(DATA_DIR, "resumenes")
 
 # ---------------------------------------------------------------------------
-# Fuentes RSS por categoria (relevantes a Ingenieria de Software)
+# Fuentes RSS por categoria (relevantes al desarrollo de software)
 # ---------------------------------------------------------------------------
 FEEDS = {
     "Programacion": [
@@ -84,7 +84,7 @@ FEEDS = {
     ],
 }
 
-# Palabras clave relevantes para Ingenieria de Software
+# Palabras clave relevantes para el desarrollo de software
 KEYWORDS = [
     "python", "javascript", "typescript", "java", "golang", "rust", "c++", "c#",
     "programming", "developer", "software", "engineering", "code", "coding",
@@ -284,7 +284,7 @@ def generate_report(news, days=2):
     now_str = dt.datetime.now().strftime("%A, %d de %B de %Y")
     lines = []
     lines.append("=" * 78)
-    lines.append("  RESUMEN TECH - AGENTE DE INGENIERIA DE SOFTWARE")
+    lines.append("  RESUMEN TECH - NOTICIAS DE TECNOLOGIA")
     lines.append("=" * 78)
     lines.append(f"  Fecha: {now_str}")
     lines.append(f"  Noticias recopiladas: {len(news)}   Ventana: {days} dia(s)")
@@ -319,7 +319,7 @@ def generate_report(news, days=2):
 
     lines.append("")
     lines.append("=" * 78)
-    lines.append("  Generado por Tech News Agent - Raspberry Pi")
+    lines.append("  Generado por Tech News Agent")
     lines.append("=" * 78)
 
     return "\n".join(lines)

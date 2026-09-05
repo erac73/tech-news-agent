@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tech News Dashboard - Raspberry Pi
+Tech News Dashboard
 ==================================
 Servicio web para ver los resumenes del Tech News Agent con un diseño
 moderno, filtros por categoria y la opcion de leer cada resumen en español.
@@ -68,6 +68,7 @@ LAYOUT = """
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>{{ titulo }}</title>
 <style>
   :root{
@@ -244,7 +245,7 @@ LAYOUT = """
   <div class="wrap bar">
     <a class="logo" href="/" style="color:var(--text)">
       <div class="logo-mark">T</div>
-      <div><b>Tech Agent</b><span>Ingenieria de Software · Raspberry Pi</span></div>
+      <div><b>Tech Agent</b><span>Python · Flask</span></div>
     </a>
     <nav>
       <a href="/" class="{{ 'on' if nav=='inicio' else '' }}">Resumenes</a>
@@ -256,7 +257,7 @@ LAYOUT = """
 <main class="wrap">
 {{ contenido }}
 </main>
-<footer>Tech News Agent &middot; Raspberry Pi &middot; actualizado por el cron diario a las 08:00</footer>
+<footer>Tech News Agent &middot; Python &middot; Flask &middot; actualizado por el cron diario a las 08:00</footer>
 </body>
 </html>
 """
@@ -463,10 +464,10 @@ def index():
 
     contenido = f"""
     <section class="hero">
-      <span class="kicker">Ingenieria de Software</span>
+      <span class="kicker">Resumen de tecnologia</span>
       <h1>Tu dosis diaria de<br>tecnología, IA y código</h1>
       <p>Resumenes automáticos de programación, inteligencia artificial, frameworks,
-         ciencias de la computación y más. Recopilados por el agente en tu Raspberry Pi.</p>
+         ciencias de la computación y más. Recopilados por el agente en tu servidor.</p>
       <div class="stats">
         <div class="stat"><b>{total_items}</b><span>noticias recopiladas</span></div>
         <div class="stat"><b>{len(summaries)}</b><span>resúmenes diarios</span></div>
@@ -779,14 +780,14 @@ def feed():
           <link>http://{request.host}/summary/{s['fecha']}</link>
           <guid>http://{request.host}/summary/{s['fecha']}</guid>
           <pubDate>{s['mtime'].strftime('%a, %d %b %Y %H:%M:%S +0000')}</pubDate>
-          <description><![CDATA[Resumen diario de tecnolog{chr(237)}a para Ingenier{chr(237)}a de Software.]]></description>
+          <description><![CDATA[Resumen diario de tecnolog{chr(237)}a.]]></description>
         </item>"""
     rss = f"""<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
   <title>Tech News Agent - Resúmenes</title>
   <link>http://{request.host}/</link>
-  <description>Resúmenes diarios de tecnología para Ingeniería de Software</description>
+  <description>Resúmenes diarios de tecnología</description>
   {items}
 </channel>
 </rss>"""
@@ -796,6 +797,16 @@ def feed():
 @app.route("/health")
 def health():
     return jsonify(ok=True, resumenes=len(list_summaries()))
+
+
+
+@app.route('/favicon.svg')
+def favicon():
+    path = os.path.join(BASE_DIR, 'favicon.svg')
+    if not os.path.isfile(path):
+        abort(404)
+    with open(path, 'rb') as fh:
+        return Response(fh.read(), mimetype='image/svg+xml')
 
 
 @app.errorhandler(404)
