@@ -57,7 +57,7 @@ L = {
     "es": {
         "nav_ini": "Resumenes",
         "nav_db": "Historial",
-        "footer": "Resumen diario de tecnología e inteligencia artificial",
+        "footer": "Tech News Agent",
         "hero_h1a": "Tu dosis diaria de",
         "hero_h1b": "tecnología, IA y código",
         "hero_p": "Resumenes automáticos de programación, inteligencia artificial, frameworks, ciencias de la computación y más. Recopilados por el agente en tu servidor.",
@@ -105,7 +105,7 @@ L = {
     "en": {
         "nav_ini": "Summaries",
         "nav_db": "History",
-        "footer": "Daily technology digest",
+        "footer": "Tech News Agent",
         "hero_h1a": "Your daily dose of",
         "hero_h1b": "technology, AI and code",
         "hero_p": "Automated summaries of programming, artificial intelligence, frameworks, computer science and more. Collected by the agent on your server.",
