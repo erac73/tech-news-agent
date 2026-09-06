@@ -43,7 +43,7 @@ CAT_COLORS = {
     "Inteligencia Artificial": "#9f6bff",
     "Ciencias de la Computacion": "#ff8a4c",
     "Frameworks y Web": "#2dd4bf",
-    "Noticias Tech": "#f43f5e",
+    "Noticias Tech": "#fb7185",
     "Docker / DevOps": "#38bdf8",
 }
 
@@ -57,7 +57,6 @@ L = {
         "nav_ini": "Resumenes",
         "nav_db": "Historial",
         "footer": "Tech News Agent · Python · Flask · actualizado por el cron diario a las 08:00",
-        "hero_kicker": "Resumen de tecnologia",
         "hero_h1a": "Tu dosis diaria de",
         "hero_h1b": "tecnología, IA y código",
         "hero_p": "Resumenes automáticos de programación, inteligencia artificial, frameworks, ciencias de la computación y más. Recopilados por el agente en tu servidor.",
@@ -71,8 +70,8 @@ L = {
         "news": "noticias",
         "title_index": "Resumen de tecnología — Tech Agent",
         "summary_title": "Resumen",
-        "back_all": "← Todos los resúmenes",
-        "back": "← Volver",
+        "back_all": "Todos los resúmenes",
+        "back": "Volver",
         "plain": "Texto plano",
         "view_plain": "Ver texto plano",
         "today_sfx": " (hoy)",
@@ -84,16 +83,16 @@ L = {
         "search_btn": "Buscar",
         "saved": "noticias guardadas",
         "empty_db": "Sin resultados para esa búsqueda.",
-        "prev": "← Anterior",
-        "next": "Siguiente →",
+        "prev": "Anterior",
+        "next": "Siguiente",
         "page1": "Página",
         "page2": "de",
         "title_db": "Historial de noticias — Tech Agent",
-        "back_db": "← Volver al historial",
+        "back_db": "Volver al historial",
         "no_date": "Sin fecha",
         "relevance": "relevancia",
         "no_desc": "Sin descripción.",
-        "open_orig": "Abrir artículo original →",
+        "open_orig": "Abrir artículo original",
         "title_detail": "Noticia — Tech Agent",
         "err404": "404 — No se encontró lo que buscabas.",
         "err500": "Ocurrió un error interno.",
@@ -106,7 +105,6 @@ L = {
         "nav_ini": "Summaries",
         "nav_db": "History",
         "footer": "Tech News Agent · Python · Flask · updated daily by the cron at 08:00",
-        "hero_kicker": "Technology digest",
         "hero_h1a": "Your daily dose of",
         "hero_h1b": "technology, AI and code",
         "hero_p": "Automated summaries of programming, artificial intelligence, frameworks, computer science and more. Collected by the agent on your server.",
@@ -120,8 +118,8 @@ L = {
         "news": "news",
         "title_index": "Technology Digest — Tech Agent",
         "summary_title": "Summary",
-        "back_all": "← All summaries",
-        "back": "← Back",
+        "back_all": "All summaries",
+        "back": "Back",
         "plain": "Plain text",
         "view_plain": "View plain text",
         "today_sfx": " (today)",
@@ -133,16 +131,16 @@ L = {
         "search_btn": "Search",
         "saved": "saved news",
         "empty_db": "No results for that search.",
-        "prev": "← Previous",
-        "next": "Next →",
+        "prev": "Previous",
+        "next": "Next",
         "page1": "Page",
         "page2": "of",
         "title_db": "News history — Tech Agent",
-        "back_db": "← Back to history",
+        "back_db": "Back to history",
         "no_date": "No date",
         "relevance": "relevance",
         "no_desc": "No description.",
-        "open_orig": "Open original article →",
+        "open_orig": "Open original article",
         "title_detail": "News — Tech Agent",
         "err404": "404 — Page not found.",
         "err500": "An internal error occurred.",
@@ -167,23 +165,28 @@ LAYOUT = """
 <title>{{ titulo }}</title>
 <style>
   :root{
-    --bg:#070a12; --bg2:#0a0f1c;
-    --text:#e9ecf6; --muted:#9aa7c2; --muted2:#6c7894;
+    --bg:#070a12;
+    --text:#e9ecf6; --muted:#9aa7c2; --muted2:#8491ac;
     --border:rgba(255,255,255,.09); --border2:rgba(255,255,255,.18);
-    --accent:#6da9ff; --accent2:#9f6bff; --accent3:#38bdf8; --link:#7cb4ff;
+    --accent:#6da9ff; --accent2:#9f6bff; --link:#7cb4ff;
     --radius:16px;
     --font-num:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,"Liberation Mono",monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  ::selection{background:rgba(109,169,255,.35); color:#fff}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#26304a; border-radius:8px; border:2px solid var(--bg)}
+  ::-webkit-scrollbar-track{background:transparent}
+  *{scrollbar-width:thin; scrollbar-color:#26304a transparent}
+  input,textarea{caret-color:var(--accent)}
   html{scroll-behavior:smooth}
   body{
-    font:15px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
     background:
       radial-gradient(1000px 560px at 88% -12%, rgba(124,92,255,.30), transparent 60%),
       radial-gradient(820px 480px at -12% 8%, rgba(45,212,191,.13), transparent 55%),
       radial-gradient(780px 520px at 50% 115%, rgba(56,130,246,.12), transparent 60%),
       var(--bg);
-    background-attachment:fixed;
     color:var(--text); min-height:100vh;
   }
   a{color:var(--link);text-decoration:none}
@@ -219,15 +222,9 @@ LAYOUT = """
 
   /* Hero */
   .hero{padding:40px 4px 30px}
-  .hero .kicker{
-    display:inline-flex; align-items:center; gap:8px; font-size:.74rem; letter-spacing:1.6px; text-transform:uppercase;
-    color:var(--accent); background:rgba(109,169,255,.10); border:1px solid rgba(109,169,255,.3);
-    padding:5px 13px; border-radius:22px; margin-bottom:16px; backdrop-filter:blur(8px);
-  }
   .hero h1{
-    font-size:clamp(1.7rem,4.4vw,2.5rem); font-weight:800; letter-spacing:-.6px; line-height:1.12;
-    background:linear-gradient(94deg,#ffffff 20%,#bcd0ff 60%,var(--accent2) 115%);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
+    font-size:clamp(1.75rem,4.6vw,2.6rem); font-weight:800; letter-spacing:-.03em; line-height:1.1;
+    color:var(--text); text-wrap:balance;
   }
   .hero p{color:var(--muted); margin-top:12px; max-width:640px}
   .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-top:24px}
@@ -240,8 +237,9 @@ LAYOUT = """
   .stat span{font-size:.78rem; color:var(--muted)}
 
   /* Titulos de seccion */
-  h2.sec{display:flex; align-items:center; gap:10px; font-size:1.05rem; margin:34px 0 16px; letter-spacing:.2px}
+  h2.sec{display:flex; align-items:center; gap:10px; font-size:1.05rem; margin:38px 0 16px; letter-spacing:.2px}
   h2.sec .dot{width:9px;height:9px;border-radius:50%; display:inline-block; box-shadow:0 0 12px currentColor}
+  h2[id]{scroll-margin-top:96px}
 
   /* Bento grid (portada) */
   .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:16px}
@@ -257,8 +255,10 @@ LAYOUT = """
   .day .dow{color:var(--muted); font-size:.82rem; margin-top:3px}
   .day .n{display:inline-block; margin-top:12px; font-size:.76rem; color:var(--accent);
           background:rgba(109,169,255,.12); border:1px solid rgba(109,169,255,.25); border-radius:18px; padding:3px 10px}
-  .day .go{position:absolute; top:16px; right:16px; color:var(--muted); font-size:1.15rem; transition:.18s}
-  .day:hover .go{color:var(--accent); transform:translateX(2px)}
+  .day .go{position:absolute; top:15px; right:15px; color:var(--muted); width:26px; height:26px;
+          display:grid; place-items:center; border-radius:8px; border:1px solid transparent; transition:.18s}
+  .day .go .arrow-r{width:14px; height:14px}
+  .day:hover .go{color:var(--accent); border-color:var(--border2)}
   .day.featured{
     grid-column:span 2; grid-row:span 2; min-height:250px; display:flex; flex-direction:column;
     justify-content:flex-end; padding:24px 26px;
@@ -290,7 +290,7 @@ LAYOUT = """
   .item h3 a{color:var(--text)}
   .item .meta{color:var(--muted2); font-size:.78rem; margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:center}
   .item .meta .cat{color:var(--cat)}
-  .item .summ{color:var(--muted); margin-top:10px; font-size:.92rem; line-height:1.6}
+  .item .summ{color:var(--muted); margin-top:10px; font-size:.92rem; line-height:1.6; max-width:72ch}
   .item .summ.clamp{display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
   .item .tags{margin-top:10px; display:flex; flex-wrap:wrap; gap:6px}
   .tag{font-size:.7rem; color:var(--muted); background:rgba(255,255,255,.05); border:1px solid var(--border);
@@ -304,6 +304,12 @@ LAYOUT = """
     border:1px solid rgba(109,169,255,.4); border-radius:9px; padding:6px 12px; transition:.15s;
   }
   .open:hover{background:linear-gradient(135deg,rgba(109,169,255,.26),rgba(159,107,255,.26)); text-decoration:none}
+
+  .arrow-l,.arrow-r{display:inline-block; width:.82em; height:.82em; background:currentColor; flex:0 0 auto;
+    -webkit-mask:var(--ic) no-repeat center/contain; mask:var(--ic) no-repeat center/contain}
+  .arrow-l{--ic:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>')}
+  .arrow-r{--ic:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>')}
+  .pill{display:inline-flex; align-items:center; gap:6px}
 
   /* Barra de herramientas del resumen */
   .toolbar{
@@ -350,7 +356,7 @@ LAYOUT = """
   }
   .detail h1{font-size:1.35rem; line-height:1.4; letter-spacing:-.2px}
   .detail .meta{color:var(--muted); font-size:.83rem; margin:12px 0}
-  .detail p{color:var(--muted); line-height:1.7}
+  .detail p{color:var(--muted); line-height:1.7; max-width:72ch}
   .detail .actions{margin-top:18px; display:flex; gap:10px}
 
   /* Enlace cruda */
@@ -364,12 +370,16 @@ LAYOUT = """
   footer{text-align:center; color:var(--muted2); font-size:.78rem; padding-bottom:36px}
   @media (max-width:760px){
     .bar{flex-direction:column; align-items:flex-start}
-    nav{width:100%} nav a{flex:1; text-align:center}
+    nav{width:100%} nav a{flex:1; text-align:center; padding:11px 4px; font-size:.92rem}
     .grid{grid-template-columns:1fr}
     .day.featured{grid-column:span 1; grid-row:span 1; min-height:150px}
     .day.featured .preview{display:none}
+    .filters select,.filters input,.filters button{flex:1 1 100%}
   }
-  @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;background-attachment:scroll!important}}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition:none!important;animation:none!important}
+    html{scroll-behavior:auto}
+  }
 </style>
 </head>
 <body>
@@ -502,7 +512,7 @@ def index():
           <div class="fecha">{s['fecha']}</div>
           <div class="dow">{dia_semana(s['fecha'])}{dow}</div>
           <span class="n">{n} {t['news']}</span>
-          <span class="go">→</span>
+          <span class="go"><span class="arrow-r"></span></span>
           {extra}
         </a>"""
 
@@ -511,7 +521,6 @@ def index():
 
     contenido = f"""
     <section class="hero">
-      <span class="kicker">{t['hero_kicker']}</span>
       <h1>{t['hero_h1a']}<br>{t['hero_h1b']}</h1>
       <p>{t['hero_p']}</p>
       <div class="stats">
@@ -543,7 +552,7 @@ def summary_detail(fecha):
         contenido = f"""
         <div class="toolbar">
           <div class="btns">
-            <a href="/" class="pill">← {t['back']}</a>
+            <a href="/" class="pill"><span class="arrow-l"></span>{t['back']}</a>
             <span class="pill on">{fecha}</span>
           </div>
           <a href="/summary/{fecha}/raw" class="pill">{t['view_plain']}</a>
@@ -579,7 +588,7 @@ def summary_detail(fecha):
                     <span>{esc(pub)}</span>
                   </div>
                   <p class="summ clamp">{esc(it['summary'] or '')}</p>
-                  <button class="more" data-more>{t['read_more']}</button> → <button class="more" data-less style="display:none">{t['see_less']}</button>
+                  <button class="more" data-more>{t['read_more']}</button> <button class="more" data-less style="display:none">{t['see_less']}</button>
                 </div>
               </div>
               <div class="tags">{tags}</div>
@@ -601,7 +610,7 @@ def summary_detail(fecha):
     contenido = f"""
     <div class="toolbar">
       <div class="btns">
-        <a href="/" class="pill">{t['back_all']}</a>
+        <a href="/" class="pill"><span class="arrow-l"></span>{t['back_all']}</a>
         <span class="pill on">{fecha} · {dia_semana(fecha)}{t['today_sfx'] if hoy else ''} · {total} {t['news']}</span>
       </div>
       <div class="btns">
@@ -700,7 +709,7 @@ def db_view():
             return f"/db?offset={o}&cat={cat}&q={q}"
         prev = href(max(0, offset - limit))
         nxt = href(min(total - limit, offset + limit))
-        pager = f'<div class="pager"><a href="{prev}">{t["prev"]}</a><span>{t["page1"]} {pg} {t["page2"]} {tp}</span><a href="{nxt}">{t["next"]}</a></div>'
+        pager = f'<div class="pager"><a href="{prev}"><span class="arrow-l"></span>{t["prev"]}</a><span>{t["page1"]} {pg} {t["page2"]} {tp}</span><a href="{nxt}">{t["next"]}<span class="arrow-r"></span></a></div>'
     else:
         pager = ""
 
@@ -718,14 +727,14 @@ def db_detail(news_id):
         abort(404)
     color = CAT_COLORS.get(r["category"], "#9aa3b5")
     contenido = f"""
-    <p><a href="/db" class="pill" style="display:inline-block; padding:7px 14px">{t['back_db']}</a></p>
+    <p><a href="/db" class="pill" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px"><span class="arrow-l"></span>{t['back_db']}</a></p>
     <div class="detail" style="margin-top:14px">
       <div class="meta"><span class="cat" style="color:{color}; font-weight:600">{esc(r['category'])}</span></div>
       <h1>{esc(r['title'])}</h1>
       <div class="meta">{(r['published'] or '').strip()[:10] or t['no_date']} &middot; {t['relevance']} {r['score']}</div>
       <p>{esc(r['summary'] or t['no_desc'])}</p>
       <div class="actions">
-        <a class="open" target="_blank" rel="noopener" href="{esc(r['link'] or '#')}">{t['open_orig']}</a>
+        <a class="open" target="_blank" rel="noopener" href="{esc(r['link'] or '#')}">{t['open_orig']}<span class="arrow-r"></span></a>
       </div>
     </div>"""
     return page(contenido, t["title_detail"], nav="db")
