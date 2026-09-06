@@ -226,18 +226,19 @@ LAYOUT = """
     font-size:clamp(1.75rem,4.6vw,2.6rem); font-weight:800; letter-spacing:-.03em; line-height:1.1;
     color:var(--text); text-wrap:balance;
   }
+  .page-title{font-size:clamp(1.45rem,3.4vw,2rem); font-weight:800; letter-spacing:-.02em;
+              line-height:1.15; text-wrap:balance; margin-bottom:16px}
   .hero p{color:var(--muted); margin-top:12px; max-width:640px}
   .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-top:24px}
   .stat{
     background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-    border:1px solid var(--border); border-radius:14px; padding:14px 16px;
-    backdrop-filter:blur(10px); box-shadow:0 12px 30px rgba(4,6,12,.4);
+    border:1px solid var(--border); border-radius:14px; padding:14px 16px; box-shadow:0 12px 30px rgba(4,6,12,.4);
   }
   .stat b{display:block; font-size:1.55rem; color:var(--accent); letter-spacing:-.5px; font-family:var(--font-num)}
   .stat span{font-size:.78rem; color:var(--muted)}
 
   /* Titulos de seccion */
-  h2.sec{display:flex; align-items:center; gap:10px; font-size:1.05rem; margin:38px 0 16px; letter-spacing:.2px}
+  h2.sec{display:flex; align-items:center; gap:10px; font-size:1.6rem; font-weight:700; letter-spacing:-.02em; margin:40px 0 16px}
   h2.sec .dot{width:9px;height:9px;border-radius:50%; display:inline-block; box-shadow:0 0 12px currentColor}
   h2[id]{scroll-margin-top:96px}
 
@@ -248,7 +249,7 @@ LAYOUT = """
     border:1px solid var(--border); border-radius:var(--radius);
     padding:18px; position:relative; overflow:hidden;
     transition:transform .2s,border-color .2s,box-shadow .2s;
-    box-shadow:0 10px 26px rgba(4,6,12,.35); backdrop-filter:blur(10px);
+    box-shadow:0 10px 26px rgba(4,6,12,.35);
   }
   .day:hover{transform:translateY(-3px); border-color:rgba(150,190,255,.45); box-shadow:0 16px 44px rgba(90,120,255,.20)}
   .day .fecha{font-size:1.15rem; font-weight:700; font-family:var(--font-num); letter-spacing:.3px}
@@ -277,7 +278,7 @@ LAYOUT = """
     border:1px solid var(--border); border-radius:var(--radius);
     padding:18px 20px; margin-bottom:14px;
     transition:border-color .18s, transform .18s, box-shadow .18s;
-    backdrop-filter:blur(8px); box-shadow:0 8px 20px rgba(4,6,12,.25);
+    box-shadow:0 8px 20px rgba(4,6,12,.25);
   }
   .item:hover{border-color:var(--border2); transform:translateY(-1px)}
   .item .row{display:flex; gap:12px; align-items:flex-start}
@@ -286,7 +287,7 @@ LAYOUT = """
     font-weight:700; font-size:.95rem; border:2px solid var(--cat); color:var(--cat);
     background:rgba(255,255,255,.03); font-family:var(--font-num);
   }
-  .item h3{font-size:1.02rem; font-weight:650; line-height:1.35; letter-spacing:.1px}
+  .item h3{font-size:1.25rem; font-weight:700; line-height:1.3; letter-spacing:-.01em}
   .item h3 a{color:var(--text)}
   .item .meta{color:var(--muted2); font-size:.78rem; margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:center}
   .item .meta .cat{color:var(--cat)}
@@ -352,7 +353,7 @@ LAYOUT = """
   /* Detalle */
   .detail{
     background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-    border:1px solid var(--border); border-radius:var(--radius); padding:28px; backdrop-filter:blur(10px);
+    border:1px solid var(--border); border-radius:var(--radius); padding:28px;
   }
   .detail h1{font-size:1.35rem; line-height:1.4; letter-spacing:-.2px}
   .detail .meta{color:var(--muted); font-size:.83rem; margin:12px 0}
@@ -389,7 +390,7 @@ LAYOUT = """
       <div class="logo-mark">T</div>
       <div><b>Tech Agent</b><span>Python · Flask</span></div>
     </a>
-    <nav>
+    <nav aria-label="Principal">
       <a href="/" class="{{ 'on' if nav=='inicio' else '' }}">{{ NAV_INI }}</a>
       <a href="/db" class="{{ 'on' if nav=='db' else '' }}">{{ NAV_DB }}</a>
       <a href="/feed" target="_blank">RSS</a>
@@ -550,10 +551,10 @@ def summary_detail(fecha):
         if not os.path.isfile(txt):
             abort(404)
         contenido = f"""
+        <h1 class="page-title">{fecha}</h1>
         <div class="toolbar">
           <div class="btns">
             <a href="/" class="pill"><span class="arrow-l"></span>{t['back']}</a>
-            <span class="pill on">{fecha}</span>
           </div>
           <a href="/summary/{fecha}/raw" class="pill">{t['view_plain']}</a>
         </div>
@@ -607,11 +608,13 @@ def summary_detail(fecha):
         <div style="margin-bottom:8px"></div>
         {body}"""
 
+    dow_line = f"{dia_semana(fecha)}{t['today_sfx'] if hoy else ''}"
     contenido = f"""
+    <h1 class="page-title">{fecha}<span style="color:var(--muted2); font-weight:500"> · {dow_line}</span></h1>
     <div class="toolbar">
       <div class="btns">
         <a href="/" class="pill"><span class="arrow-l"></span>{t['back_all']}</a>
-        <span class="pill on">{fecha} · {dia_semana(fecha)}{t['today_sfx'] if hoy else ''} · {total} {t['news']}</span>
+        <span class="pill on">{total} {t['news']}</span>
       </div>
       <div class="btns">
         <a href="/summary/{fecha}/raw" class="pill">{t['plain']}</a>
@@ -672,12 +675,13 @@ def db_view():
     conn.close()
 
     select = f"""
-    <form class="filters" method="get">
-      <select name="cat" onchange="this.form.submit()">
+    <h1 class="page-title">{t['title_db']}</h1>
+    <form class="filters" method="get" aria-label="{t['title_db']}">
+      <select name="cat" aria-label="{t['all_categories']}" onchange="this.form.submit()">
         <option value="">{t['all_categories']}</option>
         {''.join(f"<option value='{c}' {'selected' if c==cat else ''}>{c}</option>" for c in CATEGORIES)}
       </select>
-      <input type="text" name="q" value="{esc(q)}" placeholder="{t['search_ph']}">
+      <input type="text" name="q" value="{esc(q)}" placeholder="{t['search_ph']}" aria-label="{t['search_ph']}">
       <button type="submit">{t['search_btn']}</button>
     </form>"""
 
@@ -789,12 +793,22 @@ def favicon():
 
 @app.errorhandler(404)
 def not_found(_):
-    return page(f"<div class='empty'>{L['es']['err404']}</div>", "404"), 404
+    msg = esc(L["es"]["err404"])
+    home = f"<a class='pill' href='/'><span class='arrow-l'></span>{L['es']['back_all']}</a>"
+    return page(
+        f"<h1 class='page-title' style='text-align:center;margin-top:56px'>{msg}</h1>"
+        f"<p class='empty'>{home}</p>",
+        "404"), 404
 
 
 @app.errorhandler(500)
 def server_error(_):
-    return page(f"<div class='empty'>{L['es']['err500']}</div>", "Error"), 500
+    msg = esc(L["es"]["err500"])
+    home = f"<a class='pill' href='/'><span class='arrow-l'></span>{L['es']['back_all']}</a>"
+    return page(
+        f"<h1 class='page-title' style='text-align:center;margin-top:56px'>{msg}</h1>"
+        f"<p class='empty'>{home}</p>",
+        "Error"), 500
 
 
 if __name__ == "__main__":
