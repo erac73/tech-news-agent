@@ -412,7 +412,7 @@ LAYOUT = """
 <header>
   <div class="wrap bar">
     <a class="logo" href="/" style="color:var(--ink)" aria-label="Inicio">
-      <div class="logo-mark">T</div>
+      <div class="logo-mark">T</div><b>Tech News Agent</b>
     </a>
     <nav aria-label="Principal">
       <a href="/" class="{{ 'on' if nav=='inicio' else '' }}">{{ NAV_INI }}</a>
