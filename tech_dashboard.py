@@ -9,34 +9,25 @@ Rutas:
     /                      -> lista de resumenes diarios (portada)
     /summary/<fecha>       -> resumen de un dia (tarjetas por noticia)
     /summary/<fecha>/raw   -> resumen en texto plano
-    /summary/<fecha>/es    -> datos traducidos al español (para el toggle)
     /db                    -> historico de noticias (SQLite) con filtros
     /db/<id>               -> detalle de una noticia
     /feed                  -> RSS con los ultimos resumenes
     /health                -> estado del servicio
+    /lang/<es|en>          -> cambia el idioma de la interfaz (cookie)
 """
 
-import hashlib
 import json
 import os
 import re
 import sqlite3
-import time
 from datetime import datetime
 
 from flask import Flask, abort, jsonify, redirect, render_template_string, request, Response
-
-try:
-    from deep_translator import GoogleTranslator
-    TRANSLATOR_AVAILABLE = True
-except Exception:
-    TRANSLATOR_AVAILABLE = False
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.getenv("TECH_NEWS_DATA_DIR", os.path.join(BASE_DIR, "data"))
 SUMMARY_DIR = os.path.join(DATA_DIR, "resumenes")
-TRANSL_DIR = os.path.join(DATA_DIR, "traducciones")
 DB_PATH = os.path.join(DATA_DIR, "tech_news_history.db")
 
 CATEGORIES = [
@@ -89,12 +80,6 @@ L = {
         "read_more": "Leer más",
         "see_less": "Ver menos",
         "open_article": "Abrir artículo",
-        "btn_es": "Traducir a español",
-        "btn_en": "Ver original",
-        "msg_translating": "Traduciendo a español... esto puede tomar un momento. Se guardará en caché.",
-        "msg_error": "No se pudo traducir en este momento. Inténtalo de nuevo en unos segundos.",
-        "note_translated": "Traducido al español",
-        "note_partial": "Solo en inglés (título traducido)",
         "all_categories": "Todas las categorías",
         "search_ph": "Buscar noticias...",
         "search_btn": "Buscar",
@@ -144,12 +129,6 @@ L = {
         "read_more": "Read more",
         "see_less": "See less",
         "open_article": "Open article",
-        "btn_es": "Translate to Spanish",
-        "btn_en": "Show original",
-        "msg_translating": "Translating to Spanish... this may take a moment. It will be cached.",
-        "msg_error": "Could not translate right now. Try again in a few seconds.",
-        "note_translated": "Translated to Spanish",
-        "note_partial": "Title translated (summary only in English)",
         "all_categories": "All categories",
         "search_ph": "Search news...",
         "search_btn": "Search",
@@ -334,10 +313,6 @@ LAYOUT = """
   }
   .pill:hover{color:var(--text); border-color:#3a4a63}
   .pill.on{color:var(--text); background:linear-gradient(135deg,rgba(109,169,255,.22),rgba(159,107,255,.22)); border-color:rgba(109,169,255,.5)}
-  .state{padding:7px 12px; font-size:.78rem}
-  .state.busy{color:var(--accent)}
-  .state.err{color:#ff6b6b}
-  .state.ok{color:#4ade80}
 
   /* Anchors de categorias */
   .anchors{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
@@ -375,10 +350,6 @@ LAYOUT = """
 
   .empty{color:var(--muted); text-align:center; padding:46px 0}
   footer{text-align:center; color:var(--muted2); font-size:.78rem; padding-bottom:36px}
-  .es-note{font-size:.76rem; color:var(--muted2); margin-top:6px}
-  .spin{display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color:var(--accent);
-        border-radius:50%; animation:rot .7s linear infinite; vertical-align:-2px; margin-right:6px}
-  @keyframes rot{to{transform:rotate(360deg)}}
   @media (max-width:600px){ .bar{flex-direction:column; align-items:flex-start} nav{width:100%} nav a{flex:1; text-align:center} }
 </style>
 </head>
@@ -480,112 +451,6 @@ def get_db() -> sqlite3.Connection:
     return conn
 
 
-def item_id(s: str) -> str:
-    return hashlib.md5(s.encode("utf-8")).hexdigest()[:12]
-
-
-# ===========================================================================
-#  TRADUCCION AL ESPAÑOL (con cache en disco)
-# ===========================================================================
-def _trans_cache_path(fecha: str) -> str:
-    os.makedirs(TRANSL_DIR, exist_ok=True)
-    return os.path.join(TRANSL_DIR, f"traduccion-{fecha}.json")
-
-
-def _purge_old_translations(max_age_days: int = 30) -> None:
-    if not os.path.isdir(TRANSL_DIR):
-        return
-    cutoff = time.time() - max_age_days * 86400
-    for fname in os.listdir(TRANSL_DIR):
-        path = os.path.join(TRANSL_DIR, fname)
-        try:
-            if os.path.getmtime(path) < cutoff:
-                os.remove(path)
-        except OSError:
-            pass
-
-
-CACHE_VERSION = 2
-
-
-def _is_trans_failure(text: str) -> bool:
-    """Detecta si el traductor devolvio una pagina de error en vez de texto."""
-    if not text:
-        return False
-    low = text.lower()
-    markers = ("that's an error", "please try again", "error 5", "error 4", "server error",
-               "an error was", "error 500", "error 503", "too many requests", "internal server error")
-    return any(m in low for m in markers) or text.strip().startswith("<!doctype html")
-
-
-def _translate_one(translator, text: str) -> str:
-    if not text or len(text.strip()) == 0:
-        return text
-    if "<" in text and ">" in text:
-        return text  # texto con HTML: mantener original
-    try:
-        if len(text) > 4800:
-            text = text[:4800]
-        out = translator.translate(text)
-        return text if _is_trans_failure(out) else out
-    except Exception:
-        try:
-            time.sleep(1.2)
-            out = translator.translate(text)
-            return text if _is_trans_failure(out) else out
-        except Exception:
-            return text  # fallback: se deja el original
-
-
-def translate_summary(fecha: str) -> dict:
-    """Traduce titulos y resumenes del dia. Devuelve cache si ya existe."""
-    _purge_old_translations()
-    cache_path = _trans_cache_path(fecha)
-    if os.path.isfile(cache_path):
-        with open(cache_path, "r", encoding="utf-8") as fh:
-            cached = json.load(fh)
-        if cached.get("version") == CACHE_VERSION:
-            return cached
-
-    data = load_json_summary(fecha)
-    if not data:
-        abort(404)
-
-    translator = GoogleTranslator(source="auto", target="es") if TRANSLATOR_AVAILABLE else None
-    items_es = []
-    fallback = 0
-
-    for cat, items in data["categories"].items():
-        for idx, it in enumerate(items):
-            title, summary = it["title"], it["summary"]
-            if translator is None:
-                fallback += 1
-                items_es.append({"id": item_id(title), "title_es": title, "summary_es": summary})
-                continue
-            title_es = _translate_one(translator, title)
-            time.sleep(0.25)
-            # Traducir resumen solo hasta los 10 primeros por categoria (evita excesivo trafico)
-            if idx < 10:
-                summary_es = _translate_one(translator, summary) if summary else ""
-                time.sleep(0.25)
-            else:
-                summary_es = None  # cliente conserva el resumen original
-            if title_es == title and summary_es == summary:
-                fallback += 1
-            items_es.append({"id": item_id(title), "title_es": title_es, "summary_es": summary_es})
-
-    doc = {
-        "version": CACHE_VERSION,
-        "fecha": fecha,
-        "translated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "fallback": fallback,
-        "items": items_es,
-    }
-    with open(cache_path, "w", encoding="utf-8") as fh:
-        json.dump(doc, fh, ensure_ascii=False, indent=2)
-    return doc
-
-
 # ===========================================================================
 #  RUTA: PORTADA
 # ===========================================================================
@@ -671,43 +536,30 @@ def summary_detail(fecha):
         anchors += f"<a href='#cat-{cat.replace(' ', '-')}'><i style='background:{color}'></i>{cat}</a>"
 
     secciones = ""
-    js_items = []
     for cat, items in data["categories"].items():
         color = CAT_COLORS.get(cat, "#9aa3b5")
         body = ""
         for it in items:
-            iid = item_id(it["title"])
-            js_items.append({
-                "id": iid,
-                "title": it["title"],
-                "summary": it["summary"] or "",
-                "link": it.get("link", ""),
-                "cat": cat,
-                "score": it.get("score", 0),
-                "tags": it.get("tags", []),
-                "published": it.get("published"),
-            })
             tags = "".join(f"<span class='tag'>{esc(t)}</span>" for t in it.get("tags", [])[:8])
             pub = ""
             if it.get("published"):
                 pub = it["published"][:10]
             body += f"""
-            <article class="item" data-id="{iid}">
+            <article class="item">
               <div class="row">
                 <div class="score" style="--cat:{color}">{it.get('score', 0)}</div>
                 <div>
-                  <h3 data-f="title">{esc(it['title'])}</h3>
+                  <h3>{esc(it['title'])}</h3>
                   <div class="meta">
                     <span class="cat" style="color:{color}">{esc(cat)}</span>
                     <span>{esc(pub)}</span>
                   </div>
-                  <p class="summ clamp" data-f="summary">{esc(it['summary'] or '')}</p>
+                  <p class="summ clamp">{esc(it['summary'] or '')}</p>
                   <button class="more" data-more>{t['read_more']}</button> → <button class="more" data-less style="display:none">{t['see_less']}</button>
                 </div>
               </div>
               <div class="tags">{tags}</div>
               <div class="foot">
-                <span class="es-note" data-f="note"></span>
                 <a class="open" target="_blank" rel="noopener" href="{esc(it['link'] or '#')}">
                   {t['open_article']}
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M7 7h10v10"/></svg>
@@ -722,8 +574,6 @@ def summary_detail(fecha):
         <div style="margin-bottom:8px"></div>
         {body}"""
 
-    estado_es = "listo" if os.path.isfile(_trans_cache_path(fecha)) else ("no" if not TRANSLATOR_AVAILABLE else "pendiente")
-
     contenido = f"""
     <div class="toolbar">
       <div class="btns">
@@ -731,72 +581,13 @@ def summary_detail(fecha):
         <span class="pill on">{fecha} · {dia_semana(fecha, lang)}{t['today_sfx'] if hoy else ''} · {total} {t['news']}</span>
       </div>
       <div class="btns">
-        <button id="btn-es" class="pill" onclick="traducir()" data-state="{estado_es}">{t['btn_es']}</button>
         <a href="/summary/{fecha}/raw" class="pill">{t['plain']}</a>
-        <button id="btn-en" class="pill" onclick="original()" style="display:none">{t['btn_en']}</button>
       </div>
     </div>
     <div class="anchors">{anchors}</div>
-    <div id="state" class="state" style="display:none"></div>
     {secciones}
 
     <script>
-    const EN = {json.dumps(js_items, ensure_ascii=False)};
-    let ES = null;
-    const LANG = '{lang}';
-    const AUTO_ES = LANG === 'es';
-    const NOTE_ES = "{t['note_translated']}";
-    const NOTE_PARTIAL = "{t['note_partial']}";
-    const MSG_TRANSLATING = "{t['msg_translating']}";
-    const MSG_ERROR = "{t['msg_error']}";
-    function u(el){{ el.style.display='none' }}
-
-    function espera(){{
-      const s=document.getElementById('state'); s.style.display=''; s.className='state busy';
-      s.innerHTML='<span class=\\'spin\\'></span> '+MSG_TRANSLATING;
-    }}
-    function fin(){{
-      const s=document.getElementById('state'); s.style.display='none';
-    }}
-
-    async function traducir(){{
-      if(ES){{ aplicar(ES); return; }}
-      espera();
-      try{{
-        const r = await fetch('/summary/{fecha}/es');
-        if(!r.ok) throw new Error(r.status);
-        ES = await r.json();
-        aplicar(ES);
-        document.getElementById('btn-es').style.display='none';
-        document.getElementById('btn-en').style.display='';
-        fin();
-      }}catch(e){{
-        const s=document.getElementById('state'); s.style.display=''; s.className='state err';
-        s.textContent=MSG_ERROR;
-      }}
-    }}
-    function original(){{
-      document.querySelectorAll('[data-f]').forEach(el=>{{
-        const it=EN.find(x=>x.id===el.closest('.item')?.dataset.id);
-        if(!it) return;
-        if(el.dataset.f==='title') el.textContent=it.title;
-        if(el.dataset.f==='summary') el.textContent=it.summary||'';
-        if(el.dataset.f==='note') el.textContent='';
-      }});
-      document.getElementById('btn-en').style.display='none';
-      document.getElementById('btn-es').style.display='';
-    }}
-    function aplicar(es){{
-      const map = Object.fromEntries(es.items.map(i=>[i.id,i]));
-      document.querySelectorAll('.item').forEach(card=>{{
-        const e=map[card.dataset.id]; if(!e) return;
-        card.querySelector('[data-f=\\'title\\']').textContent = e.title_es;
-        const sm=card.querySelector('[data-f=\\'summary\\']');
-        if(e.summary_es){{ sm.textContent=e.summary_es; sm.classList.remove('clamp'); }}
-        const note=card.querySelector('[data-f=\\'note\\']');
-        note.textContent = e.summary_es ? NOTE_ES : NOTE_PARTIAL;
-      }});
-    }}
     document.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>{{
       const c=b.closest('.item'); c.querySelector('.summ').classList.remove('clamp');
       c.querySelector('[data-less]').style.display=''; b.style.display='none';
@@ -805,7 +596,6 @@ def summary_detail(fecha):
       const c=b.closest('.item'); c.querySelector('.summ').classList.add('clamp');
       c.querySelector('[data-more]').style.display=''; b.style.display='none';
     }});
-    if (AUTO_ES) traducir();
     </script>
     """
     return page(contenido, f"{t['summary_title']} {fecha}", lang=lang)
@@ -817,19 +607,6 @@ def summary_raw(fecha):
     if not os.path.isfile(path):
         abort(404)
     return Response(read_txt(fecha), mimetype="text/plain; charset=utf-8")
-
-
-@app.route("/summary/<fecha>/es")
-def summary_es_data(fecha):
-    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", fecha):
-        abort(400)
-    if not TRANSLATOR_AVAILABLE:
-        # Sin traductor disponible: devolver "traduccion" identica para no romper el JS
-        data = load_json_summary(fecha) or abort(404)
-        items = [{"id": item_id(it["title"]), "title_es": it["title"], "summary_es": None}
-                 for cat, lst in data["categories"].items() for it in lst]
-        return jsonify({"version": CACHE_VERSION, "fecha": fecha, "fallback": len(items), "items": items})
-    return jsonify(translate_summary(fecha))
 
 
 # ===========================================================================
