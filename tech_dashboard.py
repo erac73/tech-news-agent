@@ -13,7 +13,6 @@ Rutas:
     /db/<id>               -> detalle de una noticia
     /feed                  -> RSS con los ultimos resumenes
     /health                -> estado del servicio
-    /lang/<es|en>          -> cambia el idioma de la interfaz (cookie)
 """
 
 import json
@@ -22,7 +21,7 @@ import re
 import sqlite3
 from datetime import datetime
 
-from flask import Flask, abort, jsonify, redirect, render_template_string, request, Response
+from flask import Flask, abort, jsonify, render_template_string, request, Response
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -155,29 +154,12 @@ L = {
 }
 
 
-def get_lang() -> str:
-    return "en" if request.cookies.get("lang", "es") == "en" else "es"
-
-
-@app.route("/lang/<lang>")
-def set_lang(lang):
-    if lang not in ("es", "en"):
-        abort(400)
-    back = request.referrer or "/"
-    if not back.startswith("/") or back.startswith("//"):
-        back = "/"
-    back = back.split("#", 1)[0]
-    resp = redirect(back)
-    resp.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="Lax")
-    return resp
-
-
 # ===========================================================================
 #  PLANTILLA PRINCIPAL (diseño)
 # ===========================================================================
 LAYOUT = """
 <!doctype html>
-<html lang="{{ html_lang }}">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -232,14 +214,6 @@ LAYOUT = """
   }
   nav a:hover{color:var(--text); background:rgba(255,255,255,.06); border-color:var(--border); text-decoration:none}
   nav a.on{color:var(--text); background:linear-gradient(135deg,rgba(109,169,255,.18),rgba(159,107,255,.18)); border-color:rgba(109,169,255,.4)}
-
-  /* Selector de idioma */
-  .lang{display:inline-flex; align-items:center; gap:2px; margin-left:6px; padding:3px;
-        background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:10px}
-  .lang a{padding:5px 10px; border-radius:8px; font-size:.76rem; font-weight:700; color:var(--muted);
-          border:1px solid transparent; letter-spacing:.4px}
-  .lang a:hover{color:var(--text); border-color:var(--border); background:rgba(255,255,255,.05)}
-  .lang a.on{color:var(--text); background:linear-gradient(135deg,rgba(109,169,255,.28),rgba(159,107,255,.28)); border-color:rgba(109,169,255,.55)}
 
   main{padding:30px 0 70px}
 
@@ -409,10 +383,6 @@ LAYOUT = """
       <a href="/" class="{{ 'on' if nav=='inicio' else '' }}">{{ NAV_INI }}</a>
       <a href="/db" class="{{ 'on' if nav=='db' else '' }}">{{ NAV_DB }}</a>
       <a href="/feed" target="_blank">RSS</a>
-      <span class="lang">
-        <a href="/lang/es" class="{{ LC_ES }}">ES</a>
-        <a href="/lang/en" class="{{ LC_EN }}">EN</a>
-      </span>
     </nav>
   </div>
 </header>
@@ -425,14 +395,11 @@ LAYOUT = """
 """
 
 
-def page(contenido: str, titulo: str, nav: str = "inicio", lang: str = "es") -> str:
-    t = L[lang]
+def page(contenido: str, titulo: str, nav: str = "inicio") -> str:
+    t = L["es"]
     html = LAYOUT
-    html = html.replace("{{ html_lang }}", "en" if lang == "en" else "es")
     html = html.replace("{{ NAV_INI }}", t["nav_ini"])
     html = html.replace("{{ NAV_DB }}", t["nav_db"])
-    html = html.replace("{{ LC_ES }}", "on" if lang == "es" else "")
-    html = html.replace("{{ LC_EN }}", "on" if lang == "en" else "")
     html = html.replace("{{ FOOTER }}", t["footer"])
     html = html.replace("{{ 'on' if nav=='inicio' else '' }}", "on" if nav == "inicio" else "")
     html = html.replace("{{ 'on' if nav=='db' else '' }}", "on" if nav == "db" else "")
@@ -481,13 +448,12 @@ def read_txt(fecha: str) -> str:
         return fh.read()
 
 
-def dia_semana(fecha: str, lang: str = "es") -> str:
+def dia_semana(fecha: str) -> str:
     try:
         d = datetime.strptime(fecha, "%Y-%m-%d")
     except ValueError:
         return ""
-    nombres = L[lang]["dias"]
-    return nombres[d.weekday()]
+    return L["es"]["dias"][d.weekday()]
 
 
 def get_db() -> sqlite3.Connection:
@@ -501,8 +467,7 @@ def get_db() -> sqlite3.Connection:
 # ===========================================================================
 @app.route("/")
 def index():
-    lang = get_lang()
-    t = L[lang]
+    t = L["es"]
     summaries = list_summaries()
     total_items = 0
     total_cat = 0
@@ -535,7 +500,7 @@ def index():
         cards += f"""
         <a class="{cls}" href="/summary/{s['fecha']}">
           <div class="fecha">{s['fecha']}</div>
-          <div class="dow">{dia_semana(s['fecha'], lang)}{dow}</div>
+          <div class="dow">{dia_semana(s['fecha'])}{dow}</div>
           <span class="n">{n} {t['news']}</span>
           <span class="go">→</span>
           {extra}
@@ -559,7 +524,7 @@ def index():
     <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>{t['sec_summaries']}</h2>
     <div class="grid">{cards}</div>
     """
-    return page(contenido, t["title_index"], lang=lang)
+    return page(contenido, t["title_index"])
 
 
 # ===========================================================================
@@ -567,8 +532,7 @@ def index():
 # ===========================================================================
 @app.route("/summary/<fecha>")
 def summary_detail(fecha):
-    lang = get_lang()
-    t = L[lang]
+    t = L["es"]
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", fecha):
         abort(400)
     data = load_json_summary(fecha)
@@ -585,7 +549,7 @@ def summary_detail(fecha):
           <a href="/summary/{fecha}/raw" class="pill">{t['view_plain']}</a>
         </div>
         <pre class="raw">{esc(read_txt(fecha))}</pre>"""
-        return page(contenido, f"{t['summary_title']} {fecha}", lang=lang)
+        return page(contenido, f"{t['summary_title']} {fecha}")
 
     total = data.get("total", 0)
     hoy = fecha == datetime.now().strftime("%Y-%m-%d")
@@ -638,7 +602,7 @@ def summary_detail(fecha):
     <div class="toolbar">
       <div class="btns">
         <a href="/" class="pill">{t['back_all']}</a>
-        <span class="pill on">{fecha} · {dia_semana(fecha, lang)}{t['today_sfx'] if hoy else ''} · {total} {t['news']}</span>
+        <span class="pill on">{fecha} · {dia_semana(fecha)}{t['today_sfx'] if hoy else ''} · {total} {t['news']}</span>
       </div>
       <div class="btns">
         <a href="/summary/{fecha}/raw" class="pill">{t['plain']}</a>
@@ -658,7 +622,7 @@ def summary_detail(fecha):
     }});
     </script>
     """
-    return page(contenido, f"{t['summary_title']} {fecha}", lang=lang)
+    return page(contenido, f"{t['summary_title']} {fecha}")
 
 
 @app.route("/summary/<fecha>/raw")
@@ -674,8 +638,7 @@ def summary_raw(fecha):
 # ===========================================================================
 @app.route("/db")
 def db_view():
-    lang = get_lang()
-    t = L[lang]
+    t = L["es"]
     conn = get_db()
     cat = request.args.get("cat", "")
     q = request.args.get("q", "").strip()
@@ -742,13 +705,12 @@ def db_view():
         pager = ""
 
     contenido = select + f"<div class='count'>{total} {t['saved']}</div>" + cards + pager
-    return page(contenido, t["title_db"], nav="db", lang=lang)
+    return page(contenido, t["title_db"], nav="db")
 
 
 @app.route("/db/<int:news_id>")
 def db_detail(news_id):
-    lang = get_lang()
-    t = L[lang]
+    t = L["es"]
     conn = get_db()
     r = conn.execute("SELECT * FROM news WHERE id = ?", (news_id,)).fetchone()
     conn.close()
@@ -766,7 +728,7 @@ def db_detail(news_id):
         <a class="open" target="_blank" rel="noopener" href="{esc(r['link'] or '#')}">{t['open_orig']}</a>
       </div>
     </div>"""
-    return page(contenido, t["title_detail"], nav="db", lang=lang)
+    return page(contenido, t["title_detail"], nav="db")
 
 
 # ===========================================================================
@@ -774,8 +736,7 @@ def db_detail(news_id):
 # ===========================================================================
 @app.route("/feed")
 def feed():
-    lang = get_lang()
-    t = L[lang]
+    t = L["es"]
     items = ""
     for s in list_summaries()[:10]:
         total = "?"
@@ -819,14 +780,12 @@ def favicon():
 
 @app.errorhandler(404)
 def not_found(_):
-    lang = get_lang()
-    return page(f"<div class='empty'>{L[lang]['err404']}</div>", "404", lang=lang), 404
+    return page(f"<div class='empty'>{L['es']['err404']}</div>", "404"), 404
 
 
 @app.errorhandler(500)
 def server_error(_):
-    lang = get_lang()
-    return page(f"<div class='empty'>{L[lang]['err500']}</div>", "Error", lang=lang), 500
+    return page(f"<div class='empty'>{L['es']['err500']}</div>", "Error"), 500
 
 
 if __name__ == "__main__":
