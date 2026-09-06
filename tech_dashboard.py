@@ -2,7 +2,7 @@
 """
 Tech News Dashboard
 ==================================
-Servicio web para ver los resumenes del Tech News Agent con un diseño
+Servicio web para ver los resumenes del agente de noticias con un diseño
 moderno, filtros por categoria y la opcion de leer cada resumen en español.
 
 Rutas:
@@ -57,7 +57,7 @@ L = {
     "es": {
         "nav_ini": "Resumenes",
         "nav_db": "Historial",
-        "footer": "Tech News Agent · Python · Flask · actualizado por el cron diario a las 08:00",
+        "footer": "Resumen diario de tecnología e inteligencia artificial",
         "hero_h1a": "Tu dosis diaria de",
         "hero_h1b": "tecnología, IA y código",
         "hero_p": "Resumenes automáticos de programación, inteligencia artificial, frameworks, ciencias de la computación y más. Recopilados por el agente en tu servidor.",
@@ -69,7 +69,7 @@ L = {
         "empty_summaries": "Aun no hay resumenes.<br>Corre: <code>python3 ~/tech-news-agent/tech_news_agent.py</code>",
         "today": "Hoy",
         "news": "noticias",
-        "title_index": "Resumen de tecnología — Tech Agent",
+        "title_index": "Resumen de tecnología",
         "summary_title": "Resumen",
         "back_all": "Todos los resúmenes",
         "back": "Volver",
@@ -88,16 +88,16 @@ L = {
         "next": "Siguiente",
         "page1": "Página",
         "page2": "de",
-        "title_db": "Historial de noticias — Tech Agent",
+        "title_db": "Historial de noticias",
         "back_db": "Volver al historial",
         "no_date": "Sin fecha",
         "relevance": "relevancia",
         "no_desc": "Sin descripción.",
         "open_orig": "Abrir artículo original",
-        "title_detail": "Noticia — Tech Agent",
+        "title_detail": "Noticia",
         "err404": "404 — No se encontró lo que buscabas.",
         "err500": "Ocurrió un error interno.",
-        "feed_title": "Tech News Agent - Resúmenes",
+        "feed_title": "Resumen de tecnología",
         "feed_desc": "Resúmenes diarios de tecnología",
         "feed_item": "Resumen tecnológico",
         "dias": ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"],
@@ -105,7 +105,7 @@ L = {
     "en": {
         "nav_ini": "Summaries",
         "nav_db": "History",
-        "footer": "Tech News Agent · Python · Flask · updated daily by the cron at 08:00",
+        "footer": "Daily technology digest",
         "hero_h1a": "Your daily dose of",
         "hero_h1b": "technology, AI and code",
         "hero_p": "Automated summaries of programming, artificial intelligence, frameworks, computer science and more. Collected by the agent on your server.",
@@ -117,7 +117,7 @@ L = {
         "empty_summaries": "No summaries yet.<br>Run: <code>python3 ~/tech-news-agent/tech_news_agent.py</code>",
         "today": "Today",
         "news": "news",
-        "title_index": "Technology Digest — Tech Agent",
+        "title_index": "Technology Digest",
         "summary_title": "Summary",
         "back_all": "All summaries",
         "back": "Back",
@@ -136,16 +136,16 @@ L = {
         "next": "Next",
         "page1": "Page",
         "page2": "of",
-        "title_db": "News history — Tech Agent",
+        "title_db": "News history",
         "back_db": "Back to history",
         "no_date": "No date",
         "relevance": "relevance",
         "no_desc": "No description.",
         "open_orig": "Open original article",
-        "title_detail": "News — Tech Agent",
+        "title_detail": "News",
         "err404": "404 — Page not found.",
         "err500": "An internal error occurred.",
-        "feed_title": "Tech News Agent - Summaries",
+        "feed_title": "Technology Digest",
         "feed_desc": "Daily technology summaries",
         "feed_item": "Tech summary",
         "dias": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
@@ -169,14 +169,14 @@ LAYOUT = """
 <meta name="theme-color" content="#15171d">
 <link rel="canonical" href="{{ META_URL }}">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Tech News Agent">
+<meta property="og:site_name" content="Resumen de tecnología">
 <meta property="og:title" content="{{ titulo }}">
 <meta property="og:description" content="{{ META_DESC }}">
 <meta property="og:url" content="{{ META_URL }}">
 <meta property="og:image" content="https://tech.mipi.dpdns.org/favicon.svg">
 <meta name="twitter:card" content="summary">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebSite","name":"Tech News Agent","url":"https://tech.mipi.dpdns.org"}
+{"@context":"https://schema.org","@type":"WebSite","name":"Resumen de tecnología","url":"https://tech.mipi.dpdns.org"}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -411,9 +411,8 @@ LAYOUT = """
 <body>
 <header>
   <div class="wrap bar">
-    <a class="logo" href="/" style="color:var(--ink)">
+    <a class="logo" href="/" style="color:var(--ink)" aria-label="Inicio">
       <div class="logo-mark">T</div>
-      <div><b>Tech Agent</b><span>Python · Flask</span></div>
     </a>
     <nav aria-label="Principal">
       <a href="/" class="{{ 'on' if nav=='inicio' else '' }}">{{ NAV_INI }}</a>
