@@ -28,6 +28,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.getenv("TECH_NEWS_DATA_DIR", os.path.join(BASE_DIR, "data"))
 SUMMARY_DIR = os.path.join(DATA_DIR, "resumenes")
 DB_PATH = os.path.join(DATA_DIR, "tech_news_history.db")
+SITE_URL = "https://tech.mipi.dpdns.org"
 
 CATEGORIES = [
     "Programacion",
@@ -163,6 +164,20 @@ LAYOUT = """
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>{{ titulo }}</title>
+<meta name="description" content="{{ META_DESC }}">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#070a12">
+<link rel="canonical" href="{{ META_URL }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tech News Agent">
+<meta property="og:title" content="{{ titulo }}">
+<meta property="og:description" content="{{ META_DESC }}">
+<meta property="og:url" content="{{ META_URL }}">
+<meta property="og:image" content="https://tech.mipi.dpdns.org/favicon.svg">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"Tech News Agent","url":"https://tech.mipi.dpdns.org"}
+</script>
 <style>
   :root{
     --bg:#070a12;
@@ -192,7 +207,7 @@ LAYOUT = """
   a{color:var(--link);text-decoration:none}
   a:hover{text-decoration:underline}
   :is(a,button,select,input):focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:9px}
-  .wrap{max-width:1000px;margin:0 auto;padding:0 18px}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 18px}
 
   /* Header glass */
   header{
@@ -218,10 +233,10 @@ LAYOUT = """
   nav a:hover{color:var(--text); background:rgba(255,255,255,.06); border-color:var(--border); text-decoration:none}
   nav a.on{color:var(--text); background:linear-gradient(135deg,rgba(109,169,255,.18),rgba(159,107,255,.18)); border-color:rgba(109,169,255,.4)}
 
-  main{padding:30px 0 70px}
+  main{padding:26px 0 60px}
 
   /* Hero */
-  .hero{padding:40px 4px 30px}
+  .hero{padding:32px 4px 6px}
   .hero h1{
     font-size:clamp(1.75rem,4.6vw,2.6rem); font-weight:800; letter-spacing:-.03em; line-height:1.1;
     color:var(--text); text-wrap:balance;
@@ -229,7 +244,7 @@ LAYOUT = """
   .page-title{font-size:clamp(1.45rem,3.4vw,2rem); font-weight:800; letter-spacing:-.02em;
               line-height:1.15; text-wrap:balance; margin-bottom:16px}
   .hero p{color:var(--muted); margin-top:12px; max-width:640px}
-  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-top:24px}
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-top:20px}
   .stat{
     background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
     border:1px solid var(--border); border-radius:14px; padding:14px 16px; box-shadow:0 12px 30px rgba(4,6,12,.4);
@@ -243,7 +258,7 @@ LAYOUT = """
   h2[id]{scroll-margin-top:96px}
 
   /* Bento grid (portada) */
-  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:16px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px}
   .day{
     background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
     border:1px solid var(--border); border-radius:var(--radius);
@@ -264,6 +279,8 @@ LAYOUT = """
     grid-column:span 2; grid-row:span 2; min-height:250px; display:flex; flex-direction:column;
     justify-content:flex-end; padding:24px 26px;
   }
+  .day.featured::before{content:''; position:absolute; top:0; left:26px; right:26px; height:1px;
+    background:linear-gradient(90deg,rgba(109,169,255,0),rgba(109,169,255,.9),rgba(159,107,255,.9),rgba(109,169,255,0))}
   .day.featured .fecha{font-size:1.55rem}
   .day.featured .preview{display:flex; flex-direction:column; gap:8px; margin-top:16px}
   .day.featured .preview span{
@@ -274,6 +291,7 @@ LAYOUT = """
 
   /* Tarjeta de noticia */
   .item{
+    display:block;
     background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
     border:1px solid var(--border); border-radius:var(--radius);
     padding:18px 20px; margin-bottom:14px;
@@ -297,6 +315,8 @@ LAYOUT = """
   .tag{font-size:.7rem; color:var(--muted); background:rgba(255,255,255,.05); border:1px solid var(--border);
        border-radius:20px; padding:2px 9px}
   .item .foot{display:flex; align-items:center; justify-content:space-between; margin-top:12px}
+  .items{display:grid; grid-template-columns:repeat(auto-fit,minmax(430px,1fr)); gap:14px}
+  .items .item{margin-bottom:0}
   .more{color:var(--accent); font-size:.8rem; cursor:pointer; border:none; background:none; padding:0}
   .more:hover{text-decoration:underline}
   .open{
@@ -369,6 +389,17 @@ LAYOUT = """
 
   .empty{color:var(--muted); text-align:center; padding:46px 0}
   footer{text-align:center; color:var(--muted2); font-size:.78rem; padding-bottom:36px}
+  @media print{
+    body{background:#fff;color:#000}
+    header,.toolbar,.anchors,.pager,.filters,.more{display:none!important}
+    .day,.item,.detail,pre.raw{background:#fff;border-color:#ddd;box-shadow:none;color:#000}
+    .day .dow,.item .summ,.item .meta,.detail p,pre.raw{color:#333}
+    a{color:#06c;text-decoration:underline}
+    main{padding:0}
+    .items{grid-template-columns:1fr}
+    .day.featured{grid-column:span 1; grid-row:span 1; min-height:0}
+  }
+  @media (max-width:860px){.items{grid-template-columns:1fr}}
   @media (max-width:760px){
     .bar{flex-direction:column; align-items:flex-start}
     nav{width:100%} nav a{flex:1; text-align:center; padding:11px 4px; font-size:.92rem}
@@ -406,9 +437,14 @@ LAYOUT = """
 """
 
 
-def page(contenido: str, titulo: str, nav: str = "inicio") -> str:
+def page(contenido: str, titulo: str, nav: str = "inicio", desc: str = "", path: str = "/") -> str:
     t = L["es"]
+    if not desc:
+        desc = "Resúmenes diarios de tecnología, inteligencia artificial y programación, con historial y búsqueda."
+    url = SITE_URL + path
     html = LAYOUT
+    html = html.replace("{{ META_DESC }}", esc(desc)[:230])
+    html = html.replace("{{ META_URL }}", url)
     html = html.replace("{{ NAV_INI }}", t["nav_ini"])
     html = html.replace("{{ NAV_DB }}", t["nav_db"])
     html = html.replace("{{ FOOTER }}", t["footer"])
@@ -534,7 +570,7 @@ def index():
     <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>{t['sec_summaries']}</h2>
     <div class="grid">{cards}</div>
     """
-    return page(contenido, t["title_index"])
+    return page(contenido, t["title_index"], desc=t["hero_p"], path="/")
 
 
 # ===========================================================================
@@ -559,7 +595,7 @@ def summary_detail(fecha):
           <a href="/summary/{fecha}/raw" class="pill">{t['view_plain']}</a>
         </div>
         <pre class="raw">{esc(read_txt(fecha))}</pre>"""
-        return page(contenido, f"{t['summary_title']} {fecha}")
+        return page(contenido, f"{t['summary_title']} {fecha}", desc=f"Resumen diario de tecnología e IA · {fecha}", path=f"/summary/{fecha}")
 
     total = data.get("total", 0)
     hoy = fecha == datetime.now().strftime("%Y-%m-%d")
@@ -605,8 +641,9 @@ def summary_detail(fecha):
           <span class="dot" style="background:{color}"></span>
           {cat} <span style="color:var(--muted2);font-size:.8rem;font-weight:400">({len(items)})</span>
         </h2>
-        <div style="margin-bottom:8px"></div>
-        {body}"""
+        <div class="items">
+        {body}
+        </div>"""
 
     dow_line = f"{dia_semana(fecha)}{t['today_sfx'] if hoy else ''}"
     contenido = f"""
@@ -634,7 +671,7 @@ def summary_detail(fecha):
     }});
     </script>
     """
-    return page(contenido, f"{t['summary_title']} {fecha}")
+    return page(contenido, f"{t['summary_title']} {fecha}", desc=f"Resumen diario de tecnología e IA · {fecha}", path=f"/summary/{fecha}")
 
 
 @app.route("/summary/<fecha>/raw")
@@ -685,12 +722,12 @@ def db_view():
       <button type="submit">{t['search_btn']}</button>
     </form>"""
 
-    cards = ""
+    cards = '<div class="items">'
     for r in rows:
         color = CAT_COLORS.get(r["category"], "#9aa3b5")
         pub = (r["published"] or "-")[:10]
         cards += f"""
-        <a class="item" href="/db/{r['id']}" style="display:block; text-decoration:none">
+        <a class="item" href="/db/{r['id']}">
           <div class="row">
             <div class="score" style="--cat:{color}">{r['score']}</div>
             <div>
@@ -704,9 +741,12 @@ def db_view():
           </div>
         </a>"""
 
-    if not cards:
+    if not rows:
         cards = f"<div class='empty'>{t['empty_db']}</div>"
-    elif total > limit:
+    else:
+        cards += "</div>"
+
+    if total > limit:
         tp = (total - 1) // limit + 1
         pg = offset // limit + 1
         def href(o):
@@ -718,7 +758,7 @@ def db_view():
         pager = ""
 
     contenido = select + f"<div class='count'>{total} {t['saved']}</div>" + cards + pager
-    return page(contenido, t["title_db"], nav="db")
+    return page(contenido, t["title_db"], nav="db", desc="Historial completo de noticias de tecnología, con filtros por categoría y búsqueda.", path="/db")
 
 
 @app.route("/db/<int:news_id>")
@@ -741,7 +781,7 @@ def db_detail(news_id):
         <a class="open" target="_blank" rel="noopener" href="{esc(r['link'] or '#')}">{t['open_orig']}<span class="arrow-r"></span></a>
       </div>
     </div>"""
-    return page(contenido, t["title_detail"], nav="db")
+    return page(contenido, t['title_detail'], nav='db', desc=(esc(r['title'])[:180]), path=f'/db/{news_id}')
 
 
 # ===========================================================================
