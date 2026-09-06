@@ -1,15 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#4c9aff"/>
-      <stop offset="1" stop-color="#9f6bff"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="15" fill="url(#g)"/>
-  <rect x="12" y="12" width="40" height="41" rx="5" fill="none" stroke="#fff" stroke-width="4.5"/>
-  <circle cx="20.5" cy="23" r="1.9" fill="#fff"/>
-  <circle cx="27" cy="23" r="1.9" fill="#fff" opacity=".65"/>
-  <circle cx="33.5" cy="23" r="1.9" fill="#fff" opacity=".45"/>
-  <path d="M18.5 36.5 L25.5 41 L18.5 45.5" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="28.5" y="36.5" width="7" height="9" rx="1.8" fill="#fff"/>
+  <rect width="64" height="64" fill="#f8f6f0"/>
+  <rect x="6" y="6" width="52" height="52" rx="5" fill="none" stroke="#20242e" stroke-width="2"/>
+  <text x="32" y="43" font-family="Georgia, serif" font-size="34" font-weight="700" fill="#8f2f2a" text-anchor="middle">T</text>
+  <path d="M12 50 L52 50" stroke="#e1ded2" stroke-width="1"/>
 </svg>
