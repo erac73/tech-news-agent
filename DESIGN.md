@@ -10,23 +10,25 @@ El dueño lee el resumen diario en pantalla, de día y con luz ambiente real (no
 
 ## Tokens
 
-- Papel `#f8f6f0` · panel `#efede4`
-- Tinta `#20242e` · tinta suave `#4a5060` · tinta tenue `#5d6475`
-- Reglas `#e1ded2` · `#c8c3b2`
-- Acento editorial (rojo) `#8f2f2a` · texto sobre acento `#fbf6ec`
+Variante cromática actual: **papel de tinta nocturno** (oscuro). Misma estructura editorial; la luz de uso pasa a lectura nocturna.
+
+- Papel `#15171d` · panel `#1d212a`
+- Tinta `#e9ebf0` · tinta suave `#b6bdcb` · tinta tenue `#98a0b1`
+- Reglas `#2a2f3a` · `#3e4554`
+- Acento editorial (rojo) `#e25242` · texto sobre acento `#191310`
 - Tipografía: display serif **Newsreader**; UI/cuerpo **IBM Plex Sans**; datos/fechas **JetBrains Mono** (mono solo para data, no como disfraz)
 - Radios 4–6px; sombras de papel con offset real, nunca halo.
 
-## Categorías (tintas editoriales AA sobre papel)
+## Categorías (tintas editoriales AA sobre papel oscuro)
 
 | Categoría | Color |
 |---|---|
-| Programacion | `#38523a` |
-| Inteligencia Artificial | `#8c2e1d` |
-| Ciencias de la Computacion | `#3f3a68` |
-| Frameworks y Web | `#1e5f74` |
-| Noticias Tech | `#8a5800` |
-| Docker / DevOps | `#33465f` |
+| Programacion | `#93b069` |
+| Inteligencia Artificial | `#e07b56` |
+| Ciencias de la Computacion | `#9a93cf` |
+| Frameworks y Web | `#5fb6c8` |
+| Noticias Tech | `#e0a84e` |
+| Docker / DevOps | `#79a6c9` |
 
 ## Componentes
 

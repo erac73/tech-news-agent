@@ -40,12 +40,12 @@ CATEGORIES = [
 ]
 
 CAT_COLORS = {
-    "Programacion": "#38523a",
-    "Inteligencia Artificial": "#8c2e1d",
-    "Ciencias de la Computacion": "#3f3a68",
-    "Frameworks y Web": "#1e5f74",
-    "Noticias Tech": "#8a5800",
-    "Docker / DevOps": "#33465f",
+    "Programacion": "#93b069",
+    "Inteligencia Artificial": "#e07b56",
+    "Ciencias de la Computacion": "#9a93cf",
+    "Frameworks y Web": "#5fb6c8",
+    "Noticias Tech": "#e0a84e",
+    "Docker / DevOps": "#79a6c9",
 }
 
 app = Flask(__name__)
@@ -166,7 +166,7 @@ LAYOUT = """
 <title>{{ titulo }}</title>
 <meta name="description" content="{{ META_DESC }}">
 <meta name="robots" content="index, follow">
-<meta name="theme-color" content="#f8f6f0">
+<meta name="theme-color" content="#15171d">
 <link rel="canonical" href="{{ META_URL }}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Tech News Agent">
@@ -183,10 +183,10 @@ LAYOUT = """
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&display=swap" rel="stylesheet">
 <style>
 :root{
-    --paper:#f8f6f0; --panel:#efede4;
-    --ink:#20242e; --ink2:#4a5060; --ink3:#5d6475;
-    --rule:#e1ded2; --rule2:#c8c3b2;
-    --accent:#8f2f2a; --on-accent:#fbf6ec;
+    --paper:#15171d; --panel:#1d212a;
+    --ink:#e9ebf0; --ink2:#b6bdcb; --ink3:#98a0b1;
+    --rule:#2a2f3a; --rule2:#3e4554;
+    --accent:#e25242; --on-accent:#191310;
     --radius:6px;
     --font-serif:"Newsreader","Iowan Old Style","Palatino Linotype",Georgia,serif;
     --font-sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
@@ -218,7 +218,7 @@ LAYOUT = """
   .logo{display:flex; align-items:center; gap:10px}
   .logo-mark{
     width:32px;height:32px;border-radius:4px; display:grid; place-items:center;
-    background:var(--ink); color:var(--paper); font-family:var(--font-serif); font-weight:700; font-size:16px;
+    background:var(--accent); color:var(--on-accent); font-family:var(--font-serif); font-weight:700; font-size:16px;
   }
   .logo b{font-family:var(--font-serif); font-size:1.08rem; font-weight:700; letter-spacing:.01em}
   .logo span{display:block; font-size:.7rem; color:var(--ink3); font-weight:600; letter-spacing:.11em; text-transform:uppercase}
@@ -262,10 +262,10 @@ LAYOUT = """
   .day{
     background:var(--panel); border:1px solid var(--rule); border-radius:var(--radius); padding:18px;
     position:relative; overflow:hidden;
-    box-shadow:0 1px 2px rgba(32,36,46,.05), 0 10px 24px rgba(32,36,46,.05);
+    box-shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px rgba(0,0,0,.3);
     transition:border-color .18s, transform .18s, box-shadow .18s;
   }
-  .day:hover{transform:translateY(-2px); border-color:var(--rule2); box-shadow:0 2px 4px rgba(32,36,46,.06), 0 16px 32px rgba(32,36,46,.09)}
+  .day:hover{transform:translateY(-2px); border-color:var(--rule2); box-shadow:0 2px 4px rgba(0,0,0,.45), 0 16px 32px rgba(0,0,0,.28)}
   .day .fecha{font-family:var(--font-num); font-size:1.05rem; font-weight:700; color:var(--ink);
               letter-spacing:.02em; font-variant-numeric:tabular-nums}
   .day .dow{color:var(--ink3); font-size:.82rem; margin-top:2px}
@@ -291,10 +291,10 @@ LAYOUT = """
   /* Ficha de noticia */
   .item{
     display:block; background:var(--paper); border:1px solid var(--rule); border-radius:var(--radius);
-    padding:16px 18px; box-shadow:0 1px 2px rgba(32,36,46,.05);
+    padding:16px 18px; box-shadow:0 1px 2px rgba(0,0,0,.45);
     transition:border-color .18s, transform .18s, box-shadow .18s;
   }
-  .item:hover{border-color:var(--rule2); transform:translateY(-1px); box-shadow:0 10px 24px rgba(32,36,46,.08)}
+  .item:hover{border-color:var(--rule2); transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.3)}
   .item .row{display:flex; gap:14px; align-items:flex-start}
   .item .score{
     flex:0 0 auto; width:38px; height:38px; border-radius:4px; display:grid; place-items:center;
@@ -365,7 +365,7 @@ LAYOUT = """
 
   .detail{
     background:var(--paper); border:1px solid var(--rule); border-radius:var(--radius); padding:30px;
-    box-shadow:0 1px 2px rgba(32,36,46,.05), 0 14px 34px rgba(32,36,46,.06);
+    box-shadow:0 1px 2px rgba(0,0,0,.4), 0 18px 44px rgba(0,0,0,.3);
   }
   .detail h1{font-family:var(--font-serif); font-size:1.45rem; line-height:1.35; letter-spacing:-.01em}
   .detail .meta{color:var(--ink3); font-size:.83rem; margin:12px 0; font-family:var(--font-num); font-variant-numeric:tabular-nums}
@@ -596,12 +596,12 @@ def summary_detail(fecha):
 
     anchors = ""
     for cat in data["categories"]:
-        color = CAT_COLORS.get(cat, "#5d6475")
+        color = CAT_COLORS.get(cat, "#98a0b1")
         anchors += f"<a href='#cat-{cat.replace(' ', '-')}'><i style='background:{color}'></i>{cat}</a>"
 
     secciones = ""
     for cat, items in data["categories"].items():
-        color = CAT_COLORS.get(cat, "#5d6475")
+        color = CAT_COLORS.get(cat, "#98a0b1")
         body = ""
         for it in items:
             tags = "".join(f"<span class='tag'>{esc(t)}</span>" for t in it.get("tags", [])[:8])
@@ -718,7 +718,7 @@ def db_view():
 
     cards = '<div class="items">'
     for r in rows:
-        color = CAT_COLORS.get(r["category"], "#5d6475")
+        color = CAT_COLORS.get(r["category"], "#98a0b1")
         pub = (r["published"] or "-")[:10]
         cards += f"""
         <a class="item" href="/db/{r['id']}">
@@ -763,7 +763,7 @@ def db_detail(news_id):
     conn.close()
     if not r:
         abort(404)
-    color = CAT_COLORS.get(r["category"], "#5d6475")
+    color = CAT_COLORS.get(r["category"], "#98a0b1")
     contenido = f"""
     <p><a href="/db" class="pill" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px"><span class="arrow-l"></span>{t['back_db']}</a></p>
     <div class="detail" style="margin-top:14px">
