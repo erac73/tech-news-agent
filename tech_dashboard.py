@@ -24,7 +24,7 @@ import sqlite3
 import time
 from datetime import datetime
 
-from flask import Flask, abort, jsonify, render_template_string, request, Response
+from flask import Flask, abort, jsonify, redirect, render_template_string, request, Response
 
 try:
     from deep_translator import GoogleTranslator
@@ -60,11 +60,145 @@ CAT_COLORS = {
 app = Flask(__name__)
 
 # ===========================================================================
+#  IDIOMAS (interfaz ES / EN)
+# ===========================================================================
+L = {
+    "es": {
+        "nav_ini": "Resumenes",
+        "nav_db": "Historial",
+        "footer": "Tech News Agent · Python · Flask · actualizado por el cron diario a las 08:00",
+        "hero_kicker": "Resumen de tecnologia",
+        "hero_h1a": "Tu dosis diaria de",
+        "hero_h1b": "tecnología, IA y código",
+        "hero_p": "Resumenes automáticos de programación, inteligencia artificial, frameworks, ciencias de la computación y más. Recopilados por el agente en tu servidor.",
+        "stat_news": "noticias recopiladas",
+        "stat_summaries": "resúmenes diarios",
+        "stat_categories": "categorías",
+        "stat_feeds": "fuentes RSS",
+        "sec_summaries": "Resúmenes disponibles",
+        "empty_summaries": "Aun no hay resumenes.<br>Corre: <code>python3 ~/tech-news-agent/tech_news_agent.py</code>",
+        "today": "Hoy",
+        "news": "noticias",
+        "title_index": "Resumen de tecnología — Tech Agent",
+        "summary_title": "Resumen",
+        "back_all": "← Todos los resúmenes",
+        "back": "← Volver",
+        "plain": "Texto plano",
+        "view_plain": "Ver texto plano",
+        "today_sfx": " (hoy)",
+        "read_more": "Leer más",
+        "see_less": "Ver menos",
+        "open_article": "Abrir artículo",
+        "btn_es": "Traducir a español",
+        "btn_en": "Ver original",
+        "msg_translating": "Traduciendo a español... esto puede tomar un momento. Se guardará en caché.",
+        "msg_error": "No se pudo traducir en este momento. Inténtalo de nuevo en unos segundos.",
+        "note_translated": "Traducido al español",
+        "note_partial": "Solo en inglés (título traducido)",
+        "all_categories": "Todas las categorías",
+        "search_ph": "Buscar noticias...",
+        "search_btn": "Buscar",
+        "saved": "noticias guardadas",
+        "empty_db": "Sin resultados para esa búsqueda.",
+        "prev": "← Anterior",
+        "next": "Siguiente →",
+        "page1": "Página",
+        "page2": "de",
+        "title_db": "Historial de noticias — Tech Agent",
+        "back_db": "← Volver al historial",
+        "no_date": "Sin fecha",
+        "relevance": "relevancia",
+        "no_desc": "Sin descripción.",
+        "open_orig": "Abrir artículo original →",
+        "title_detail": "Noticia — Tech Agent",
+        "err404": "404 — No se encontró lo que buscabas.",
+        "err500": "Ocurrió un error interno.",
+        "feed_title": "Tech News Agent - Resúmenes",
+        "feed_desc": "Resúmenes diarios de tecnología",
+        "feed_item": "Resumen tecnológico",
+        "dias": ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"],
+    },
+    "en": {
+        "nav_ini": "Summaries",
+        "nav_db": "History",
+        "footer": "Tech News Agent · Python · Flask · updated daily by the cron at 08:00",
+        "hero_kicker": "Technology digest",
+        "hero_h1a": "Your daily dose of",
+        "hero_h1b": "technology, AI and code",
+        "hero_p": "Automated summaries of programming, artificial intelligence, frameworks, computer science and more. Collected by the agent on your server.",
+        "stat_news": "news collected",
+        "stat_summaries": "daily summaries",
+        "stat_categories": "categories",
+        "stat_feeds": "RSS feeds",
+        "sec_summaries": "Available summaries",
+        "empty_summaries": "No summaries yet.<br>Run: <code>python3 ~/tech-news-agent/tech_news_agent.py</code>",
+        "today": "Today",
+        "news": "news",
+        "title_index": "Technology Digest — Tech Agent",
+        "summary_title": "Summary",
+        "back_all": "← All summaries",
+        "back": "← Back",
+        "plain": "Plain text",
+        "view_plain": "View plain text",
+        "today_sfx": " (today)",
+        "read_more": "Read more",
+        "see_less": "See less",
+        "open_article": "Open article",
+        "btn_es": "Translate to Spanish",
+        "btn_en": "Show original",
+        "msg_translating": "Translating to Spanish... this may take a moment. It will be cached.",
+        "msg_error": "Could not translate right now. Try again in a few seconds.",
+        "note_translated": "Translated to Spanish",
+        "note_partial": "Title translated (summary only in English)",
+        "all_categories": "All categories",
+        "search_ph": "Search news...",
+        "search_btn": "Search",
+        "saved": "saved news",
+        "empty_db": "No results for that search.",
+        "prev": "← Previous",
+        "next": "Next →",
+        "page1": "Page",
+        "page2": "of",
+        "title_db": "News history — Tech Agent",
+        "back_db": "← Back to history",
+        "no_date": "No date",
+        "relevance": "relevance",
+        "no_desc": "No description.",
+        "open_orig": "Open original article →",
+        "title_detail": "News — Tech Agent",
+        "err404": "404 — Page not found.",
+        "err500": "An internal error occurred.",
+        "feed_title": "Tech News Agent - Summaries",
+        "feed_desc": "Daily technology summaries",
+        "feed_item": "Tech summary",
+        "dias": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    },
+}
+
+
+def get_lang() -> str:
+    return "en" if request.cookies.get("lang", "es") == "en" else "es"
+
+
+@app.route("/lang/<lang>")
+def set_lang(lang):
+    if lang not in ("es", "en"):
+        abort(400)
+    back = request.referrer or "/"
+    if not back.startswith("/") or back.startswith("//"):
+        back = "/"
+    back = back.split("#", 1)[0]
+    resp = redirect(back)
+    resp.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="Lax")
+    return resp
+
+
+# ===========================================================================
 #  PLANTILLA PRINCIPAL (diseño)
 # ===========================================================================
 LAYOUT = """
 <!doctype html>
-<html lang="es">
+<html lang="{{ html_lang }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -106,13 +240,21 @@ LAYOUT = """
   }
   .logo b{font-size:1.05rem; letter-spacing:.2px}
   .logo span{display:block; font-size:.72rem; color:var(--muted); font-weight:400}
-  nav{display:flex; gap:6px}
+  nav{display:flex; gap:6px; align-items:center}
   nav a{
     color:var(--muted); padding:7px 13px; border-radius:9px; font-size:.9rem;
     transition:.18s; border:1px solid transparent;
   }
   nav a:hover{color:var(--text); background:var(--panel); border-color:var(--border); text-decoration:none}
   nav a.on{color:var(--text); background:linear-gradient(135deg,rgba(109,169,255,.16),rgba(159,107,255,.16)); border-color:rgba(109,169,255,.35)}
+
+  /* Selector de idioma */
+  .lang{display:inline-flex; align-items:center; gap:2px; margin-left:6px; padding:3px;
+        background:var(--panel2); border:1px solid var(--border); border-radius:9px}
+  .lang a{padding:5px 10px; border-radius:7px; font-size:.76rem; font-weight:700; color:var(--muted);
+          border:1px solid transparent; letter-spacing:.4px}
+  .lang a:hover{color:var(--text); border-color:var(--border); background:var(--panel)}
+  .lang a.on{color:var(--text); background:linear-gradient(135deg,rgba(109,169,255,.25),rgba(159,107,255,.25)); border-color:rgba(109,169,255,.5)}
 
   main{padding:26px 0 70px}
 
@@ -248,26 +390,38 @@ LAYOUT = """
       <div><b>Tech Agent</b><span>Python · Flask</span></div>
     </a>
     <nav>
-      <a href="/" class="{{ 'on' if nav=='inicio' else '' }}">Resumenes</a>
-      <a href="/db" class="{{ 'on' if nav=='db' else '' }}">Historial</a>
+      <a href="/" class="{{ 'on' if nav=='inicio' else '' }}">{{ NAV_INI }}</a>
+      <a href="/db" class="{{ 'on' if nav=='db' else '' }}">{{ NAV_DB }}</a>
       <a href="/feed" target="_blank">RSS</a>
+      <span class="lang">
+        <a href="/lang/es" class="{{ LC_ES }}">ES</a>
+        <a href="/lang/en" class="{{ LC_EN }}">EN</a>
+      </span>
     </nav>
   </div>
 </header>
 <main class="wrap">
 {{ contenido }}
 </main>
-<footer>Tech News Agent &middot; Python &middot; Flask &middot; actualizado por el cron diario a las 08:00</footer>
+<footer>{{ FOOTER }}</footer>
 </body>
 </html>
 """
 
 
-def page(contenido: str, titulo: str, nav: str = "inicio") -> str:
-    html = LAYOUT.replace("{{ contenido }}", contenido)
-    html = html.replace("{{ titulo }}", titulo)
+def page(contenido: str, titulo: str, nav: str = "inicio", lang: str = "es") -> str:
+    t = L[lang]
+    html = LAYOUT
+    html = html.replace("{{ html_lang }}", "en" if lang == "en" else "es")
+    html = html.replace("{{ NAV_INI }}", t["nav_ini"])
+    html = html.replace("{{ NAV_DB }}", t["nav_db"])
+    html = html.replace("{{ LC_ES }}", "on" if lang == "es" else "")
+    html = html.replace("{{ LC_EN }}", "on" if lang == "en" else "")
+    html = html.replace("{{ FOOTER }}", t["footer"])
     html = html.replace("{{ 'on' if nav=='inicio' else '' }}", "on" if nav == "inicio" else "")
     html = html.replace("{{ 'on' if nav=='db' else '' }}", "on" if nav == "db" else "")
+    html = html.replace("{{ contenido }}", contenido)
+    html = html.replace("{{ titulo }}", titulo)
     return render_template_string(html)
 
 
@@ -311,12 +465,12 @@ def read_txt(fecha: str) -> str:
         return fh.read()
 
 
-def dia_semana(fecha: str) -> str:
+def dia_semana(fecha: str, lang: str = "es") -> str:
     try:
         d = datetime.strptime(fecha, "%Y-%m-%d")
     except ValueError:
         return ""
-    nombres = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
+    nombres = L[lang]["dias"]
     return nombres[d.weekday()]
 
 
@@ -437,6 +591,8 @@ def translate_summary(fecha: str) -> dict:
 # ===========================================================================
 @app.route("/")
 def index():
+    lang = get_lang()
+    t = L[lang]
     summaries = list_summaries()
     total_items = 0
     total_cat = 0
@@ -451,34 +607,34 @@ def index():
     for s in summaries[:14]:
         d = load_json_summary(s["fecha"])
         n = d.get("total", "?") if d else "?"
+        dow = f" · {t['today']}" if s["fecha"] == hoy else ""
         cards += f"""
         <a class="day" href="/summary/{s['fecha']}">
           <div class="fecha">{s['fecha']}</div>
-          <div class="dow">{dia_semana(s['fecha'])}{' · Hoy' if s['fecha']==hoy else ''}</div>
-          <span class="n">{n} noticias</span>
+          <div class="dow">{dia_semana(s['fecha'], lang)}{dow}</div>
+          <span class="n">{n} {t['news']}</span>
           <span class="go">→</span>
         </a>"""
 
     if not cards:
-        cards = "<div class='empty'>Aun no hay resumenes.<br>Corre: <code>python3 ~/tech-news-agent/tech_news_agent.py</code></div>"
+        cards = f"<div class='empty'>{t['empty_summaries']}</div>"
 
     contenido = f"""
     <section class="hero">
-      <span class="kicker">Resumen de tecnologia</span>
-      <h1>Tu dosis diaria de<br>tecnología, IA y código</h1>
-      <p>Resumenes automáticos de programación, inteligencia artificial, frameworks,
-         ciencias de la computación y más. Recopilados por el agente en tu servidor.</p>
+      <span class="kicker">{t['hero_kicker']}</span>
+      <h1>{t['hero_h1a']}<br>{t['hero_h1b']}</h1>
+      <p>{t['hero_p']}</p>
       <div class="stats">
-        <div class="stat"><b>{total_items}</b><span>noticias recopiladas</span></div>
-        <div class="stat"><b>{len(summaries)}</b><span>resúmenes diarios</span></div>
-        <div class="stat"><b>6</b><span>categorías</span></div>
-        <div class="stat"><b>22</b><span>fuentes RSS</span></div>
+        <div class="stat"><b>{total_items}</b><span>{t['stat_news']}</span></div>
+        <div class="stat"><b>{len(summaries)}</b><span>{t['stat_summaries']}</span></div>
+        <div class="stat"><b>6</b><span>{t['stat_categories']}</span></div>
+        <div class="stat"><b>22</b><span>{t['stat_feeds']}</span></div>
       </div>
     </section>
-    <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>Resúmenes disponibles</h2>
+    <h2 class="sec"><span class="dot" style="background:var(--accent)"></span>{t['sec_summaries']}</h2>
     <div class="grid">{cards}</div>
     """
-    return page(contenido, "Resumen de tecnología — Tech Agent")
+    return page(contenido, t["title_index"], lang=lang)
 
 
 # ===========================================================================
@@ -486,6 +642,8 @@ def index():
 # ===========================================================================
 @app.route("/summary/<fecha>")
 def summary_detail(fecha):
+    lang = get_lang()
+    t = L[lang]
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", fecha):
         abort(400)
     data = load_json_summary(fecha)
@@ -496,13 +654,13 @@ def summary_detail(fecha):
         contenido = f"""
         <div class="toolbar">
           <div class="btns">
-            <a href="/" class="pill">← Volver</a>
+            <a href="/" class="pill">← {t['back']}</a>
             <span class="pill on">{fecha}</span>
           </div>
-          <a href="/summary/{fecha}/raw" class="pill">Ver texto plano</a>
+          <a href="/summary/{fecha}/raw" class="pill">{t['view_plain']}</a>
         </div>
         <pre class="raw">{esc(read_txt(fecha))}</pre>"""
-        return page(contenido, f"Resumen {fecha}")
+        return page(contenido, f"{t['summary_title']} {fecha}", lang=lang)
 
     total = data.get("total", 0)
     hoy = fecha == datetime.now().strftime("%Y-%m-%d")
@@ -544,14 +702,14 @@ def summary_detail(fecha):
                     <span>{esc(pub)}</span>
                   </div>
                   <p class="summ clamp" data-f="summary">{esc(it['summary'] or '')}</p>
-                  <button class="more" data-more>Leer más</button> → <button class="more" data-less style="display:none">Ver menos</button>
+                  <button class="more" data-more>{t['read_more']}</button> → <button class="more" data-less style="display:none">{t['see_less']}</button>
                 </div>
               </div>
               <div class="tags">{tags}</div>
               <div class="foot">
                 <span class="es-note" data-f="note"></span>
                 <a class="open" target="_blank" rel="noopener" href="{esc(it['link'] or '#')}">
-                  Abrir artículo
+                  {t['open_article']}
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M7 7h10v10"/></svg>
                 </a>
               </div>
@@ -569,13 +727,13 @@ def summary_detail(fecha):
     contenido = f"""
     <div class="toolbar">
       <div class="btns">
-        <a href="/" class="pill">← Todos los resúmenes</a>
-        <span class="pill on">{fecha} · {dia_semana(fecha)}{' (hoy)' if hoy else ''} · {total} noticias</span>
+        <a href="/" class="pill">{t['back_all']}</a>
+        <span class="pill on">{fecha} · {dia_semana(fecha, lang)}{t['today_sfx'] if hoy else ''} · {total} {t['news']}</span>
       </div>
       <div class="btns">
-        <button id="btn-es" class="pill" onclick="traducir()" data-state="{estado_es}">Traducir a español</button>
-        <a href="/summary/{fecha}/raw" class="pill">Texto plano</a>
-        <button id="btn-en" class="pill" onclick="original()" style="display:none">Ver original</button>
+        <button id="btn-es" class="pill" onclick="traducir()" data-state="{estado_es}">{t['btn_es']}</button>
+        <a href="/summary/{fecha}/raw" class="pill">{t['plain']}</a>
+        <button id="btn-en" class="pill" onclick="original()" style="display:none">{t['btn_en']}</button>
       </div>
     </div>
     <div class="anchors">{anchors}</div>
@@ -585,11 +743,17 @@ def summary_detail(fecha):
     <script>
     const EN = {json.dumps(js_items, ensure_ascii=False)};
     let ES = null;
+    const LANG = '{lang}';
+    const AUTO_ES = LANG === 'es';
+    const NOTE_ES = "{t['note_translated']}";
+    const NOTE_PARTIAL = "{t['note_partial']}";
+    const MSG_TRANSLATING = "{t['msg_translating']}";
+    const MSG_ERROR = "{t['msg_error']}";
     function u(el){{ el.style.display='none' }}
 
     function espera(){{
       const s=document.getElementById('state'); s.style.display=''; s.className='state busy';
-      s.innerHTML='<span class=\\'spin\\'></span> Traduciendo a español... esto puede tomar un momento. Se guardará en caché.';
+      s.innerHTML='<span class=\\'spin\\'></span> '+MSG_TRANSLATING;
     }}
     function fin(){{
       const s=document.getElementById('state'); s.style.display='none';
@@ -608,7 +772,7 @@ def summary_detail(fecha):
         fin();
       }}catch(e){{
         const s=document.getElementById('state'); s.style.display=''; s.className='state err';
-        s.textContent='No se pudo traducir en este momento. Inténtalo de nuevo en unos segundos.';
+        s.textContent=MSG_ERROR;
       }}
     }}
     function original(){{
@@ -630,7 +794,7 @@ def summary_detail(fecha):
         const sm=card.querySelector('[data-f=\\'summary\\']');
         if(e.summary_es){{ sm.textContent=e.summary_es; sm.classList.remove('clamp'); }}
         const note=card.querySelector('[data-f=\\'note\\']');
-        note.textContent = e.summary_es ? 'Traducido al español' : 'Solo en inglés (título traducido)';
+        note.textContent = e.summary_es ? NOTE_ES : NOTE_PARTIAL;
       }});
     }}
     document.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>{{
@@ -641,9 +805,10 @@ def summary_detail(fecha):
       const c=b.closest('.item'); c.querySelector('.summ').classList.add('clamp');
       c.querySelector('[data-more]').style.display=''; b.style.display='none';
     }});
+    if (AUTO_ES) traducir();
     </script>
     """
-    return page(contenido, f"Resumen {fecha}")
+    return page(contenido, f"{t['summary_title']} {fecha}", lang=lang)
 
 
 @app.route("/summary/<fecha>/raw")
@@ -672,6 +837,8 @@ def summary_es_data(fecha):
 # ===========================================================================
 @app.route("/db")
 def db_view():
+    lang = get_lang()
+    t = L[lang]
     conn = get_db()
     cat = request.args.get("cat", "")
     q = request.args.get("q", "").strip()
@@ -698,11 +865,11 @@ def db_view():
     select = f"""
     <form class="filters" method="get">
       <select name="cat" onchange="this.form.submit()">
-        <option value="">Todas las categorías</option>
+        <option value="">{t['all_categories']}</option>
         {''.join(f"<option value='{c}' {'selected' if c==cat else ''}>{c}</option>" for c in CATEGORIES)}
       </select>
-      <input type="text" name="q" value="{esc(q)}" placeholder="Buscar noticias...">
-      <button type="submit">Buscar</button>
+      <input type="text" name="q" value="{esc(q)}" placeholder="{t['search_ph']}">
+      <button type="submit">{t['search_btn']}</button>
     </form>"""
 
     cards = ""
@@ -725,7 +892,7 @@ def db_view():
         </a>"""
 
     if not cards:
-        cards = "<div class='empty'>Sin resultados para esa búsqueda.</div>"
+        cards = f"<div class='empty'>{t['empty_db']}</div>"
     elif total > limit:
         tp = (total - 1) // limit + 1
         pg = offset // limit + 1
@@ -733,16 +900,18 @@ def db_view():
             return f"/db?offset={o}&cat={cat}&q={q}"
         prev = href(max(0, offset - limit))
         nxt = href(min(total - limit, offset + limit))
-        pager = f'<div class="pager"><a href="{prev}">← Anterior</a><span>Página {pg} de {tp}</span><a href="{nxt}">Siguiente →</a></div>'
+        pager = f'<div class="pager"><a href="{prev}">{t["prev"]}</a><span>{t["page1"]} {pg} {t["page2"]} {tp}</span><a href="{nxt}">{t["next"]}</a></div>'
     else:
         pager = ""
 
-    contenido = select + f"<div class='count'>{total} noticias guardadas</div>" + cards + pager
-    return page(contenido, "Historial de noticias — Tech Agent", nav="db")
+    contenido = select + f"<div class='count'>{total} {t['saved']}</div>" + cards + pager
+    return page(contenido, t["title_db"], nav="db", lang=lang)
 
 
 @app.route("/db/<int:news_id>")
 def db_detail(news_id):
+    lang = get_lang()
+    t = L[lang]
     conn = get_db()
     r = conn.execute("SELECT * FROM news WHERE id = ?", (news_id,)).fetchone()
     conn.close()
@@ -750,17 +919,17 @@ def db_detail(news_id):
         abort(404)
     color = CAT_COLORS.get(r["category"], "#9aa3b5")
     contenido = f"""
-    <p><a href="/db" class="pill" style="display:inline-block; padding:7px 14px">← Volver al historial</a></p>
+    <p><a href="/db" class="pill" style="display:inline-block; padding:7px 14px">{t['back_db']}</a></p>
     <div class="detail" style="margin-top:14px">
       <div class="meta"><span class="cat" style="color:{color}; font-weight:600">{esc(r['category'])}</span></div>
       <h1>{esc(r['title'])}</h1>
-      <div class="meta">{esc(r['published'] or 'Sin fecha')} &middot; relevancia {r['score']}</div>
-      <p>{esc(r['summary'] or 'Sin descripción.')}</p>
+      <div class="meta">{(r['published'] or '').strip()[:10] or t['no_date']} &middot; {t['relevance']} {r['score']}</div>
+      <p>{esc(r['summary'] or t['no_desc'])}</p>
       <div class="actions">
-        <a class="open" target="_blank" rel="noopener" href="{esc(r['link'] or '#')}">Abrir artículo original →</a>
+        <a class="open" target="_blank" rel="noopener" href="{esc(r['link'] or '#')}">{t['open_orig']}</a>
       </div>
     </div>"""
-    return page(contenido, "Noticia — Tech Agent", nav="db")
+    return page(contenido, t["title_detail"], nav="db", lang=lang)
 
 
 # ===========================================================================
@@ -768,6 +937,8 @@ def db_detail(news_id):
 # ===========================================================================
 @app.route("/feed")
 def feed():
+    lang = get_lang()
+    t = L[lang]
     items = ""
     for s in list_summaries()[:10]:
         total = "?"
@@ -776,18 +947,18 @@ def feed():
             total = d.get("total", "?")
         items += f"""
         <item>
-          <title>Resumen tecnológico {s['fecha']} ({total} noticias)</title>
+          <title>{t['feed_item']} {s['fecha']} ({total})</title>
           <link>http://{request.host}/summary/{s['fecha']}</link>
           <guid>http://{request.host}/summary/{s['fecha']}</guid>
           <pubDate>{s['mtime'].strftime('%a, %d %b %Y %H:%M:%S +0000')}</pubDate>
-          <description><![CDATA[Resumen diario de tecnolog{chr(237)}a.]]></description>
+          <description><![CDATA[{t['feed_desc']}.]]></description>
         </item>"""
     rss = f"""<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
-  <title>Tech News Agent - Resúmenes</title>
+  <title>{t['feed_title']}</title>
   <link>http://{request.host}/</link>
-  <description>Resúmenes diarios de tecnología</description>
+  <description>{t['feed_desc']}</description>
   {items}
 </channel>
 </rss>"""
@@ -811,12 +982,14 @@ def favicon():
 
 @app.errorhandler(404)
 def not_found(_):
-    return page("<div class='empty'>404 — No se encontró lo que buscabas.</div>", "404"), 404
+    lang = get_lang()
+    return page(f"<div class='empty'>{L[lang]['err404']}</div>", "404", lang=lang), 404
 
 
 @app.errorhandler(500)
 def server_error(_):
-    return page("<div class='empty'>Ocurrió un error interno.</div>", "Error"), 500
+    lang = get_lang()
+    return page(f"<div class='empty'>{L[lang]['err500']}</div>", "Error", lang=lang), 500
 
 
 if __name__ == "__main__":
